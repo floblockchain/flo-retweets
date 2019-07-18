@@ -425,7 +425,8 @@ class FloRetweetBot(object):
                     self.data['statistic']['tweets'] += 1
                     accounts = deepcopy(self.data['accounts'])
                     for user_id in accounts:
-                        if str(user_id) != str(self.bot_user_id) or self.config['SYSTEM']['let_bot_retweet'] == "True":
+                        if str(user_id) != str(self.bot_user_id) or \
+                                self.config['SYSTEM']['let_bot_account_retweet'] == "True":
                             api = self.get_api_user(user_id)
                             try:
                                 user_tweet = api.get_status(tweet.id)
