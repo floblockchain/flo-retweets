@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 [Semantic Versioning](http://semver.org/).
 
 ## (development stage/unreleased)
+### Added
+- forum link (rule-set) to DMs
+### Fixed
+- Typo in DM
+
 ## 0.4.0
 ### Added
 - https://github.com/floblockchain/flo-retweets/projects/1#card-24117403

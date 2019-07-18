@@ -194,7 +194,10 @@ class FloRetweetBot(object):
                                                       "- 'set-rt-level:1' to retweet only first class posts\r\n"
                                                       "- 'set-rt-level:2' to be informative\r\n"
                                                       "- 'set-rt-level:3' to retweet everything what this app "
-                                                      "finds for you (related to FLO!)\r\n\r\nYour current "
+                                                      "finds for you (related to FLO!)\r\n\r\n"
+                                                      "Definition of retweet-levels: "
+                                                      "https://forum.flo.cash/t/flo-retweets-bot/292\r\n\r\n"
+                                                      "Your current "
                                                       "retweet-level is " + str(retweet_level) + "!\r\n\r\nFor further "
                                                       "information write a direct message with the text 'help' to me "
                                                       "@" + str(self.config['SYSTEM']['bot_twitter_account']) + "!"
@@ -261,8 +264,11 @@ class FloRetweetBot(object):
                                                           "-level please write a DM with the text:\r\n"
                                                           "- 'set-rt-level:1' to retweet only first class posts\r\n"
                                                           "- 'set-rt-level:2' to be informative\r\n"
-                                                          "- 'set-rt-level:3' to retweet everything what this app "
-                                                          "finds for you (related to FLO!)\r\n\r\nYour current "
+                                                          "- 'set-rt-level:3' to retweet everything what this bot "
+                                                          "finds for you (related to FLO!)\r\n\r\n"
+                                                          "Definition of retweet-levels: "
+                                                          "https://forum.flo.cash/t/flo-retweets-bot/292\r\n\r\n"
+                                                          "Your current "
                                                           "retweet-level is " + str(retweet_level) + "!\r\n\r\n"
                                                           "You have made " + str(retweets) + " retweets for FLO!"
                                                           "\r\n\r\nFor further "
@@ -288,7 +294,7 @@ class FloRetweetBot(object):
                         self.api_self.send_direct_message(dm.message_create['sender_id'],
                                                           "Hello " + str(user.name) +
                                                           "!\r\n\r\nYour new retweet-level is " + str(retweet_level) +
-                                                          "!\r\n\r\nBest regards,\r\nt" + self.dm_sender_name + "!")
+                                                          "!\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['received_botcmds'] += 1
                         self.save_db()
