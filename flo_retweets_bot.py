@@ -100,9 +100,6 @@ class FloRetweetBot(object):
         self.bot_user_id = self.api_self.get_user(self.config['SYSTEM']['bot_twitter_account']).id
         self.load_db()
         print("Starting " + str(self.app_name) + " " + str(self.app_version))
-        print("self.config['SYSTEM']['let_bot_retweet'] is ", str(self.config['SYSTEM']['let_bot_retweet']))
-        if self.config['SYSTEM']['let_bot_retweet']:
-            print("test bool value from configparser is positive!")
 
     def _load_config(self):
         config_path = "./conf.d"
@@ -428,7 +425,7 @@ class FloRetweetBot(object):
                     self.data['statistic']['tweets'] += 1
                     accounts = deepcopy(self.data['accounts'])
                     for user_id in accounts:
-                        if str(user_id) != str(self.bot_user_id) or self.config['SYSTEM']['let_bot_retweet'] is True:
+                        if str(user_id) != str(self.bot_user_id) or self.config['SYSTEM']['let_bot_retweet'] == "True":
                             api = self.get_api_user(user_id)
                             try:
                                 user_tweet = api.get_status(tweet.id)
