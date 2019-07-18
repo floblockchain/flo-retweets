@@ -7,8 +7,6 @@
 # Project website: https://retweets.floblockchain.com/
 # GitHub: https://github.com/floblockchain/flo-retweets
 #
-# Forked from: https://github.com/bithon/Taubenschlag
-#
 # Author: Oliver Zehentleitner
 #         https://about.me/oliver_zehentleitner/
 #
@@ -60,12 +58,12 @@ logging.getLogger(__name__).setLevel(logging.DEBUG)
 
 class FloRetweetBot(object):
     def __init__(self):
-        self.app_version = "0.2.0"
+        self.app_version = "0.3.0"
         self.config = self._load_config()
         self.error_text = "Something went wrong! Please <a href='" + self.config['SYSTEM']['base_url'] + \
                           "oAuthTwitter/start'>try again</a> or report to " \
-                          "<a href='https://twitter.com/" + self.config['SYSTEM']['admin_twitter_account'] + "'>" + \
-                          self.config['SYSTEM']['admin_twitter_account'] + "</a>!"
+                          "<a href='https://twitter.com/" + self.config['SYSTEM']['admin_contact_twitter_account'] + \
+                          "'>" + self.config['SYSTEM']['admin_contact_twitter_account'] + "</a>!"
         self.consumer_key = self.config['SECRETS']['consumer_key']
         self.consumer_secret = self.config['SECRETS']['consumer_secret']
         self.access_token = self.config['SECRETS']['access_token']
@@ -98,6 +96,7 @@ class FloRetweetBot(object):
                                           "sent_help_dm": 0,
                                           "received_botcmds": 0}}
         self.bot_user_id = self.api_self.get_user(self.config['SYSTEM']['bot_twitter_account']).id
+        self.sys_admin_list = self.config['SYSTEM']['sys_admin_list'].split(",")
         self.load_db()
         print("Starting " + str(self.app_name) + " " + str(self.app_version))
 
@@ -197,22 +196,12 @@ class FloRetweetBot(object):
                                                       "information write a direct message with the text 'help' to me "
                                                       "@" + str(self.config['SYSTEM']['bot_twitter_account']) + "!"
                                                       "\r\n\r\nBest regards,\r\nthe FLO community!")
-                    self.api_self.send_direct_message(self.bot_user_id,
-                                                      "Hello " + str(self.api_self.get_user(self.bot_user_id).name) +
-                                                      "!\r\n\r\n"
-                                                      "A new user subscribed to FLO Retweets: " +
-                                                      str(user.id) + " - " + str(user.screen_name) +
-                                                      "\r\n\r\nBest regards,\r\nthe FLO community!")
-                    self.api_self.send_direct_message("964500628914491394",
-                                                      "Hello Oliver!\r\n\r\n"
-                                                      "A new user subscribed to FLO Retweets: " +
-                                                      str(user.id) + " - " + str(user.screen_name) +
-                                                      "\r\n\r\nBest regards,\r\nthe FLO community!")
-                    self.api_self.send_direct_message("1076914789",
-                                                      "Hello Joseph!\r\n\r\n"
-                                                      "A new user subscribed to FLO Retweets: " +
-                                                      str(user.id) + " - " + str(user.screen_name) +
-                                                      "\r\n\r\nBest regards,\r\nthe FLO community!")
+                    # send status message to bot account
+                    self.send_status_message_new_user(self.bot_user_id, user.id)
+                    # send status message to sys_admins
+                    for user_name in self.sys_admin_list:
+                        self.send_status_message_new_user(self.api_self.get_user(user_name).id, user.id)
+
                 except tweepy.error.TweepError:
                     pass
                 return redirect(self.config['SYSTEM']['redirect_successfull_participation'], code=302)
@@ -221,10 +210,19 @@ class FloRetweetBot(object):
                 return self.error_text
         try:
             dispatcher = wsgi.PathInfoDispatcher({'/': app})
-            webserver = wsgi.WSGIServer(("0.0.0.0", 17613), dispatcher)
+            webserver = wsgi.WSGIServer((self.config['SYSTEM']['api_listener_ip'],
+                                         self.config['SYSTEM']['api_listener_port']),
+                                        dispatcher)
             webserver.start()
         except RuntimeError as error_msg:
             logging.critical("webserver is going down! " + str(error_msg))
+
+    def send_status_message_new_user(self, recipient_id, new_user_id):
+        self.api_self.send_direct_message(recipient_id,
+                                          "Hello " + str(self.api_self.get_user(recipient_id).screen_name) + "!\r\n\r\n"
+                                          "A new user subscribed to FLO Retweets: " + str(new_user_id) + " - " +
+                                          str(self.api_self.get_user(recipient_id).screen_name) +
+                                          "\r\n\r\nBest regards,\r\nthe FLO community!")
 
     def check_direct_messages(self):
         time.sleep(2)
