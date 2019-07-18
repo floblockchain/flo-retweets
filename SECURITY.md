@@ -13,7 +13,7 @@ The `floblockchain` team and community take all security bugs in `flo-retweets` 
 Thank you for improving the security of `flo-retweets`. We appreciate your 
 efforts and responsible disclosure and will make every effort to acknowledge your contributions.
 
-Report security bugs via email to ???
+Report security bugs via email to marketing@flo.cash
 
 The lead maintainer will acknowledge your email within 48 hours, and will send a
 more detailed response within 48 hours indicating the next steps in handling
