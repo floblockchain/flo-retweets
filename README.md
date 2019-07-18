@@ -18,6 +18,7 @@ This bot powers this campaign: https://retweets.floblockchain.com!
         - config files
         - how to run forever
         - backup
+        - autostart
 ## Report bugs or suggest features
 https://github.com/floblockchain/flo-retweets/issues/new/choose
 ## Todo
