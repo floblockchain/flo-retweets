@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 [Semantic Versioning](http://semver.org/).
 
 ## (development stage/unreleased)
+## 0.3.1
+### Fixed
+- KeyError oAuthTwitter/verify
+
 ## 0.3.0
 ### Added
 - config setting for webserer listener IP and port

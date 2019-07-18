@@ -130,8 +130,11 @@ class FloRetweetBot(object):
 
         @app.route('/oAuthTwitter/verify')
         def oauth_twitter_verify():
-            if request.args["denied"]:
-                return redirect(self.config['SYSTEM']['redirect_canceled'], code=302)
+            try:
+                if request.args["denied"]:
+                    return redirect(self.config['SYSTEM']['redirect_canceled'], code=302)
+            except KeyError:
+                pass
             auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
             auth.request_token = {'oauth_token': request.args["oauth_token"],
                                   'oauth_token_secret': request.args["oauth_verifier"]}
@@ -211,7 +214,7 @@ class FloRetweetBot(object):
         try:
             dispatcher = wsgi.PathInfoDispatcher({'/': app})
             webserver = wsgi.WSGIServer((self.config['SYSTEM']['api_listener_ip'],
-                                         self.config['SYSTEM']['api_listener_port']),
+                                         int(self.config['SYSTEM']['api_listener_port'])),
                                         dispatcher)
             webserver.start()
         except RuntimeError as error_msg:
