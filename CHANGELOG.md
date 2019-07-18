@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 [Semantic Versioning](http://semver.org/).
 
 ## (development stage/unreleased)
+## 0.4.0
+### Added
+- https://github.com/floblockchain/flo-retweets/projects/1#card-24117403
+- https://github.com/floblockchain/flo-retweets/projects/1#card-24116742 for get-info
+- config setting for DM sender name
+- show retweets in the help DM answer
+## Changed
+- redirect to canceled.html instead of sending an own page
+
+## 0.3.2
+### Fixed
+- send DM to sys admins on new user auth
+
 ## 0.3.1
 ### Fixed
 - KeyError oAuthTwitter/verify
@@ -18,7 +31,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## 0.2.0
 ### Added
-- Handling for https://github.com/floblockchain/flo-retweets/projects/1#card-24116784 
+- Handling for https://github.com/floblockchain/flo-retweets/projects/1#card-24116784 for status DM on new user auth
 - https://github.com/floblockchain/flo-retweets/projects/1#card-24119327
 
 ## 0.1.0

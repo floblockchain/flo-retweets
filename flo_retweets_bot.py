@@ -58,12 +58,12 @@ logging.getLogger(__name__).setLevel(logging.DEBUG)
 
 class FloRetweetBot(object):
     def __init__(self):
-        self.app_version = "0.3.0"
+        self.app_version = "0.4.0"
         self.config = self._load_config()
-        self.error_text = "Something went wrong! Please <a href='" + self.config['SYSTEM']['base_url'] + \
-                          "oAuthTwitter/start'>try again</a> or report to " \
-                          "<a href='https://twitter.com/" + self.config['SYSTEM']['admin_contact_twitter_account'] + \
-                          "'>" + self.config['SYSTEM']['admin_contact_twitter_account'] + "</a>!"
+        self.app_name = self.config['SYSTEM']['app_name']
+        self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
+        print("Starting " + str(self.app_name) + " " + str(self.app_version))
+        self.base_url = self.config['SYSTEM']['base_url']
         self.consumer_key = self.config['SECRETS']['consumer_key']
         self.consumer_secret = self.config['SECRETS']['consumer_secret']
         self.access_token = self.config['SECRETS']['access_token']
@@ -72,12 +72,10 @@ class FloRetweetBot(object):
         self.consumer_secret_dm = self.config['SECRETS']['consumer_secret_dm']
         self.access_token_dm = self.config['SECRETS']['access_token_dm']
         self.access_token_secret_dm = self.config['SECRETS']['access_token_secret_dm']
-        self.app_name = self.config['SYSTEM']['app_name']
-        self.base_url = self.config['SYSTEM']['base_url']
         parser = ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                 description=textwrap.dedent(self.app_name + " " + self.app_version+ " by "
                                                             "\r\n - Oliver Zehentleitner (2019 - 2019)"
-                                                            "\r\n\r\n"
+                                                            "for FLO\r\n\r\n"
                                                             "description: this bot manages retweets for the FLO "
                                                             "Twitter community of multiple accounts!"),
                                 epilog=textwrap.dedent("GitHub: https://github.com/floblockchain/flo-retweets"))
@@ -98,7 +96,6 @@ class FloRetweetBot(object):
         self.bot_user_id = self.api_self.get_user(self.config['SYSTEM']['bot_twitter_account']).id
         self.sys_admin_list = self.config['SYSTEM']['sys_admin_list'].split(",")
         self.load_db()
-        print("Starting " + str(self.app_name) + " " + str(self.app_version))
 
     def _load_config(self):
         config_path = "./conf.d"
@@ -117,7 +114,7 @@ class FloRetweetBot(object):
         return config
 
     def _webserver_thread(self):
-        logging.debug("starting webserver ...")
+        logging.info("starting webserver ...")
         app = Flask(__name__)
 
         @app.route('/oAuthTwitter/start')
@@ -154,9 +151,14 @@ class FloRetweetBot(object):
                     pass
                 if status is False:
                     self.data['accounts'] = {str(user.id): {}}
+                try:
+                    retweets_value = self.data['accounts'][str(user.id)]['retweets']
+                except KeyError:
+                    retweets_value = 0
                 self.data['accounts'][str(user.id)] = {'access_token': str(auth.access_token),
                                                        'access_token_secret': str(auth.access_token_secret),
-                                                       'retweet_level': 2}
+                                                       'retweet_level': 3,
+                                                       'retweets': retweets_value}
                 self.save_db()
                 logging.info("saved new oAuth access of twitter user " + str(user.name) + "!")
                 print("Saved new oAuth token of @" + str(user.screen_name) + " (" + str(user.name) + ")!")
@@ -179,8 +181,6 @@ class FloRetweetBot(object):
                 try:
                     self.api_self.send_direct_message(user.id, "Hello " + str(user.name) +
                                                       "!\r\n\r\nThank you for joining us!\r\n\r\n"
-                                                      "This app is a BETA version, please report issues to "
-                                                      "@UNICORN_OZ - Thank you!\r\n\r\n"
                                                       "If you wish to disable the access of our app, please visit "
                                                       "https://twitter.com/settings/applications and remove the "
                                                       "authorization!\r\n\r\n"
@@ -189,7 +189,7 @@ class FloRetweetBot(object):
                                                       "enable the access again. In such a case you would have to "
                                                       "authorize the app again on "
                                                       "twitter:\r\n" + self.base_url + "/oAuthTwitter/start"
-                                                      "\r\n\r\nTo subscribe to a retweet"
+                                                      "\r\n\r\nTo set a retweet"
                                                       "-level please write a DM with the text:\r\n"
                                                       "- 'set-rt-level:1' to retweet only first class posts\r\n"
                                                       "- 'set-rt-level:2' to be informative\r\n"
@@ -198,34 +198,34 @@ class FloRetweetBot(object):
                                                       "retweet-level is " + str(retweet_level) + "!\r\n\r\nFor further "
                                                       "information write a direct message with the text 'help' to me "
                                                       "@" + str(self.config['SYSTEM']['bot_twitter_account']) + "!"
-                                                      "\r\n\r\nBest regards,\r\nthe FLO community!")
+                                                      "\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
                     # send status message to bot account
                     self.send_status_message_new_user(self.bot_user_id, user.id)
                     # send status message to sys_admins
-                    for user_name in self.sys_admin_list:
-                        self.send_status_message_new_user(self.api_self.get_user(user_name).id, user.id)
-
+                    for admin_name in self.sys_admin_list:
+                        self.send_status_message_new_user(self.api_self.get_user(screen_name=admin_name).id, user.id)
                 except tweepy.error.TweepError:
                     pass
                 return redirect(self.config['SYSTEM']['redirect_successfull_participation'], code=302)
-                # return "Thank you for participation!<br><br>Go back to <a href='https://www.twitter.com'>Twitter</a>!"
             else:
-                return self.error_text
+                return redirect(self.config['SYSTEM']['redirect_canceled'], code=302)
         try:
             dispatcher = wsgi.PathInfoDispatcher({'/': app})
             webserver = wsgi.WSGIServer((self.config['SYSTEM']['api_listener_ip'],
                                          int(self.config['SYSTEM']['api_listener_port'])),
                                         dispatcher)
             webserver.start()
+            logging.info("webserver started!")
         except RuntimeError as error_msg:
             logging.critical("webserver is going down! " + str(error_msg))
 
     def send_status_message_new_user(self, recipient_id, new_user_id):
+        logging.debug("sending DM with 'new user' alert to " + str(recipient_id))
         self.api_self.send_direct_message(recipient_id,
-                                          "Hello " + str(self.api_self.get_user(recipient_id).screen_name) + "!\r\n\r\n"
+                                          "Hello " + str(self.api_self.get_user(recipient_id).name) + "!\r\n\r\n"
                                           "A new user subscribed to FLO Retweets: " + str(new_user_id) + " - " +
-                                          str(self.api_self.get_user(recipient_id).screen_name) +
-                                          "\r\n\r\nBest regards,\r\nthe FLO community!")
+                                          str(self.api_self.get_user(new_user_id).screen_name) +
+                                          "\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
 
     def check_direct_messages(self):
         time.sleep(2)
@@ -242,10 +242,13 @@ class FloRetweetBot(object):
                         except KeyError:
                             self.data['accounts'][str(user_id)]['retweet_level'] = 2
                             retweet_level = self.data['accounts'][str(user_id)]['retweet_level']
+                        try:
+                            retweets = self.data['accounts'][str(user_id)]['retweets']
+                        except KeyError:
+                            self.data['accounts'][str(user_id)]['retweets'] = 0
+                            retweets = self.data['accounts'][str(user_id)]['retweets']
                         self.api_self.send_direct_message(dm.message_create['sender_id'],
                                                           "Hello " + str(user.name) + "!\r\n\r\n"
-                                                          "This app is a BETA version, please report issues to "
-                                                          "@UNICORN_OZ - Thank you!\r\n\r\n"
                                                           "If you wish to disable the access of our app, "
                                                           "please visit https://twitter.com/settings/applications and "
                                                           "remove the authorization!"
@@ -254,18 +257,19 @@ class FloRetweetBot(object):
                                                           "work anymore if you enable the access again. In such a "
                                                           "case you would have to authorize the app again on twitter:"
                                                           "\r\n" + self.base_url + "/oAuthTwitter/start"
-                                                          "\r\n\r\nTo subscribe to a retweet"
+                                                          "\r\n\r\nTo set a retweet"
                                                           "-level please write a DM with the text:\r\n"
                                                           "- 'set-rt-level:1' to retweet only first class posts\r\n"
                                                           "- 'set-rt-level:2' to be informative\r\n"
                                                           "- 'set-rt-level:3' to retweet everything what this app "
                                                           "finds for you (related to FLO!)\r\n\r\nYour current "
                                                           "retweet-level is " + str(retweet_level) + "!\r\n\r\n"
-                                                          "For further "
+                                                          "You have made " + str(retweets) + " retweets for FLO!"
+                                                          "\r\n\r\nFor further "
                                                           "information write a direct message with the text 'help' to "
                                                           "me @" + str(self.config['SYSTEM']['bot_twitter_account']) +
                                                           "!\r\n\r\nBest "
-                                                          "regards,\r\nthe FLO community!")
+                                                          "regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['sent_help_dm'] += 1
                         self.save_db()
@@ -284,7 +288,7 @@ class FloRetweetBot(object):
                         self.api_self.send_direct_message(dm.message_create['sender_id'],
                                                           "Hello " + str(user.name) +
                                                           "!\r\n\r\nYour new retweet-level is " + str(retweet_level) +
-                                                          "!\r\n\r\nBest regards,\r\nthe FLO community!")
+                                                          "!\r\n\r\nBest regards,\r\nt" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['received_botcmds'] += 1
                         self.save_db()
@@ -303,7 +307,7 @@ class FloRetweetBot(object):
                         self.api_self.send_direct_message(dm.message_create['sender_id'],
                                                           "Hello " + str(user.name) +
                                                           "!\r\n\r\nYour new retweet-level is " + str(retweet_level) +
-                                                          "!\r\n\r\nBest regards,\r\nthe FLO community!")
+                                                          "!\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['received_botcmds'] += 1
                         self.save_db()
@@ -322,14 +326,17 @@ class FloRetweetBot(object):
                         self.api_self.send_direct_message(dm.message_create['sender_id'],
                                                           "Hello " + str(user.name) +
                                                           "!\r\n\r\nYour new retweet-level is " + str(retweet_level) +
-                                                          "!\r\n\r\nBest regards,\r\nthe FLO community!")
+                                                          "!\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['received_botcmds'] += 1
                         self.save_db()
                     elif "".join(str(dm.message_create['message_data']['text']).split()).lower() == "get-info":
                         user = self.api_self.get_user(dm.message_create['sender_id'])
-                        if str(user.id) == str(self.bot_user_id) or str(user.id) == str("1076914789") or \
-                                str(user.id) == str("964500628914491394"):
+                        admin_status = False
+                        for admin_name in self.sys_admin_list:
+                            if str(user.id) == str(self.api_self.get_user(screen_name=admin_name).id):
+                                admin_status = True
+                        if str(user.id) == str(self.bot_user_id) or admin_status is True:
                             print("Send bot infos to " + str(user.id) + " - " + str(user.screen_name))
                             msg = ""
                             msg += "Bot: " + self.app_name + " " + self.app_version + "\r\n"
@@ -348,7 +355,8 @@ class FloRetweetBot(object):
                                                               str(self.api_self.get_user(
                                                                   dm.message_create['sender_id']).name) +
                                                               "!\r\n\r\n" +
-                                                              str(msg) + "\r\n\r\nBest regards,\r\nthe FLO community!")
+                                                              str(msg) + "\r\n\r\nBest regards,\r\n" +
+                                                              self.dm_sender_name + "!")
                             self.data['statistic']['received_botcmds'] += 1
                         else:
                             logging.info("Received 'get-info' from unauthorized account: " + str(user.id) + " - " +
@@ -423,6 +431,7 @@ class FloRetweetBot(object):
                     pass
                 if tweet_is_retweeted is False:
                     print(str(tweet.id) + " - " + str(tweet.text[0:80]).splitlines()[0] + " ...")
+                    logging.debug(str(tweet.id) + " - " + str(tweet.text[0:80]).splitlines()[0] + " ...")
                     self.data['statistic']['tweets'] += 1
                     accounts = deepcopy(self.data['accounts'])
                     for user_id in accounts:
@@ -436,6 +445,11 @@ class FloRetweetBot(object):
                                         user_tweet.retweet()
                                         print("\tRetweeted:", user_id, str(self.api_self.get_user(user_id).screen_name))
                                         self.data['statistic']['retweets'] += 1
+                                        try:
+                                            self.data['accounts'][str(user_id)]['retweets'] += 1
+                                        except KeyError:
+                                            self.data['accounts'][str(user_id)]['retweets'] = 1
+                                        logging.debug("\tRetweeted:", user_id, str(self.api_self.get_user(user_id).screen_name))
                                     except tweepy.TweepError as error_msg:
                                         print("\tERROR: " + str(error_msg))
                                         logging.error("can not retweet: " + str(error_msg))
