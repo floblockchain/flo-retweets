@@ -1,8 +1,13 @@
-# FLO Retweets Change Log
+# FLO Retweets Bot Change Log
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to 
 [Semantic Versioning](http://semver.org/).
 
-## 0.1.0_beta (development stage/unreleased)
+## (development stage/unreleased)
+
+## 0.2.0
+### Added
+- Handling for https://github.com/floblockchain/flo-retweets/projects/1#card-24116784 
+- https://github.com/floblockchain/flo-retweets/projects/1#card-24119327

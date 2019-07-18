@@ -60,7 +60,7 @@ logging.getLogger(__name__).setLevel(logging.DEBUG)
 
 class FloRetweetBot(object):
     def __init__(self):
-        self.app_version = "0.1.0_beta"
+        self.app_version = "0.2.0"
         self.config = self._load_config()
         self.error_text = "Something went wrong! Please <a href='" + self.config['SYSTEM']['base_url'] + \
                           "oAuthTwitter/start'>try again</a> or report to " \
@@ -81,7 +81,7 @@ class FloRetweetBot(object):
                                                             "\r\n - Oliver Zehentleitner (2019 - 2019)"
                                                             "\r\n\r\n"
                                                             "description: this bot manages retweets for the FLO "
-                                                            "Twitter community for multiple accounts!"),
+                                                            "Twitter community of multiple accounts!"),
                                 epilog=textwrap.dedent("GitHub: https://github.com/floblockchain/flo-retweets"))
         parser.add_argument('-a', '--account-list', dest='account_list',
                             help='show saved account list', action="store_true")
@@ -100,6 +100,9 @@ class FloRetweetBot(object):
         self.bot_user_id = self.api_self.get_user(self.config['SYSTEM']['bot_twitter_account']).id
         self.load_db()
         print("Starting " + str(self.app_name) + " " + str(self.app_version))
+        print("self.config['SYSTEM']['let_bot_retweet'] is ", str(self.config['SYSTEM']['let_bot_retweet']))
+        if self.config['SYSTEM']['let_bot_retweet']:
+            print("test bool value from configparser is positive!")
 
     def _load_config(self):
         config_path = "./conf.d"
@@ -131,6 +134,8 @@ class FloRetweetBot(object):
 
         @app.route('/oAuthTwitter/verify')
         def oauth_twitter_verify():
+            if request.args["denied"]:
+                return redirect(self.config['SYSTEM']['redirect_canceled'], code=302)
             auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
             auth.request_token = {'oauth_token': request.args["oauth_token"],
                                   'oauth_token_secret': request.args["oauth_verifier"]}
@@ -423,7 +428,7 @@ class FloRetweetBot(object):
                     self.data['statistic']['tweets'] += 1
                     accounts = deepcopy(self.data['accounts'])
                     for user_id in accounts:
-                        if str(user_id) != str(self.bot_user_id):
+                        if str(user_id) != str(self.bot_user_id) or self.config['SYSTEM']['let_bot_retweet'] is True:
                             api = self.get_api_user(user_id)
                             try:
                                 user_tweet = api.get_status(tweet.id)
