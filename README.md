@@ -2,7 +2,7 @@
 ## Welcome to FLO Retweets! 
 To participate in the campaign please join on https://retweets.floblockchain.com!
 ## What is it
-This Bot powers this campaign: https://retweets.floblockchain.com!
+This bot powers this campaign: https://retweets.floblockchain.com!
 ## How to install
 - Twitter dev Account
 - Create 2 apps (bot and dm) and API tokens for them
