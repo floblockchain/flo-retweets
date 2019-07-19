@@ -608,8 +608,8 @@ class FloRetweetBot(object):
                         self.save_db()
                         retweets = self.data['accounts'][str(user_id)]['retweets']
                     user = self.api_self.get_user(user_id)
-                    print("\t" + str(self._fill_up_space(25, user_id)) + " @" +
-                          self._fill_up_space(20, user.screen_name) + " RT level: " +
+                    print("\t" + str(self._fill_up_space(25, user_id)) +
+                          self._fill_up_space(20, "@" + user.screen_name) + " RT level: " +
                           str(self.data['accounts'][user_id]['retweet_level']) + "\tretweets: " +
                           str(retweets))
             print("Tweets: " + str(self.data['statistic']['tweets']))
