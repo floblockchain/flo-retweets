@@ -60,7 +60,7 @@ logging.getLogger(__name__).setLevel(logging.DEBUG)
 
 class FloRetweetBot(object):
     def __init__(self):
-        self.app_version = "0.6.0"
+        self.app_version = "0.6.1"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
@@ -537,7 +537,11 @@ class FloRetweetBot(object):
                 conditions_list = self.config['RT-LEVEL-' + str(rt_levels)]['conditions'].split(",")
                 source_accounts_list = self.config['RT-LEVEL-' + str(rt_levels)]['from'].split(",")
                 for source_account in source_accounts_list:
-                    timeline = self.api_self.user_timeline(source_account)
+                    try:
+                        timeline = self.api_self.user_timeline(source_account)
+                    except tweepy.error.TweepError as error_msg:
+                        logging.critical(str(error_msg))
+                        print("error: " + str(error_msg) + " user: " + source_account)
                     for condition in conditions_list:
                         for tweet in timeline:
                             if condition == "any":

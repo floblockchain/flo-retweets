@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 [Semantic Versioning](http://semver.org/).
 
 ## (development stage/unreleased)
+
+## 0.6.1
+### Fixed
+- Exception handling get timeline and auth denied
+
 ## 0.6.0
 ### Added
 - rt sources: https://github.com/floblockchain/flo-retweets/projects/1#card-24147426 to configure in 
