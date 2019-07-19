@@ -4,17 +4,18 @@ To participate in the campaign please join on https://retweets.floblockchain.com
 ## What is it
 The FLO version of https://github.com/bithon/Taubenschlag
 ## How to install
-- Request a Twitter dev account: https://developer.twitter.com/en/account/environments
-- Create 2 apps (bot and dm) and API tokens for them
-- A domain routed to the server of the bot
-- Create a server with:
-    - Python > 3.5
-    - Apache 
+Request a Twitter dev account: https://developer.twitter.com/en/account/environments
+
+A domain routed to the server of the bot
+
+You need a server with Python3 a webserver and a reverse proxy.
+
+Both can be easily provided with apache2:
 ```
 # apt-get install apache2
 # apt-get install python-certbot-apache
 ```
-Set the hostname in `/etc/apache2/sites-enabled/000-default` to the public domain name (yes is port 80)
+Set the hostname in `/etc/apache2/sites-enabled/000-default` to the public domain name (yes it's port 80)
 ```
 # systemctl restart apache2
 # certbot --apache
@@ -47,9 +48,12 @@ Modify `./conf.d/main.cfg` if needed.
 
 Modify `./conf.d/rt-level-rule-set.cfg` to setup RT sources.
 
-- autostart &  how to run forever
-- backup
-- auto renew certbot
+How to use systemd? TODO
+
+Lets encrypt offers `certbot nenew` to make the renewal easy!
+
+Its important to backup `/opt/flo-retweets/db/flo_retweets_bot.json`, do it with `cat flo_retweets_bot.json > 
+backup.json`.
 
 ## Report bugs or suggest features
 https://github.com/floblockchain/flo-retweets/issues/new/choose
