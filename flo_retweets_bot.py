@@ -60,7 +60,7 @@ logging.getLogger(__name__).setLevel(logging.DEBUG)
 
 class FloRetweetBot(object):
     def __init__(self):
-        self.app_version = "0.4.0"
+        self.app_version = "0.5.0"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
@@ -98,6 +98,15 @@ class FloRetweetBot(object):
         self.bot_user_id = self.api_self.get_user(self.config['SYSTEM']['bot_twitter_account']).id
         self.sys_admin_list = self.config['SYSTEM']['sys_admin_list'].split(",")
         self.load_db()
+
+    def _fill_up_space(self, demand_of_chars, string):
+        blanks_pre = ""
+        blanks_post = ""
+        demand_of_blanks = demand_of_chars - len(str(string)) - 1
+        while len(blanks_post) < demand_of_blanks:
+            blanks_pre = " "
+            blanks_post += " "
+        return blanks_pre + str(string) + blanks_post
 
     def _load_config(self):
         config_path = "./conf.d"
@@ -198,15 +207,15 @@ class FloRetweetBot(object):
                                                       "(https://twitter.com/settings/sessions) by clicking on the "
                                                       "'Revoke Access' button. However, once access is revoked, it "
                                                       "cannot be undone via Twitter. You must reauthorize it at "
-                                                      "https://retweets.floblockchain.com/""\r\n"
-                                                      "\r\n\r\nAuthorizing FLO Retweets permits it to:\r\n"
-                                                      "\r\n\r\n*  Read Tweets from your timeline\r\n"
+                                                      "https://retweets.floblockchain.com/\r\n"
+                                                      "\r\nAuthorizing FLO Retweets permits it to:"
+                                                      "\r\n* Read Tweets from your timeline\r\n"
                                                       "* See who you follow, and follow new people\r\n"
                                                       "* Update your profile\r\n"
                                                       "* Post Tweets for you\r\n"
                                                       "\r\n**HOWEVER, FLO RETWEETS WILL DO NONE OF THESE THINGS. "
                                                       "FLO RETWEETS WILL ONLY RETWEET RELEVENT FLO TWEETS**\r\n"
-                                                      "\r\nAuthorizing FLO Retweets does not permit it to:\r\n"
+                                                      "\r\nAuthorizing FLO Retweets does not permit it to:"
                                                       "\r\n* Access or otherwise view your Direct Messages (DMs)"
                                                       "\r\n* Access or otherwise view your email address\r\n"
                                                       "* Access or otherwise view your Twitter password\r\n"
@@ -216,7 +225,8 @@ class FloRetweetBot(object):
                                                       "shared with Twitter. For more information, see Twitter’s "
                                                       'Privacy Policy.'"\r\n"
                                                       "\r\nFor questions or additional information, send a direct "
-                                                      "message with the text 'help' to me! Please report issues "
+                                                      "message with the text 'help' to me or 'get-cmd-list' to see "
+                                                      "a list of all commands!\r\n\r\nPlease report issues "
                                                       "to https://github.com/floblockchain/flo-retweets/issues – "
                                                       "Thank you!\r\n"
                                                       "\r\nBest regards,\r\n" + self.dm_sender_name + "!")
@@ -263,11 +273,13 @@ class FloRetweetBot(object):
                             retweet_level = self.data['accounts'][str(user_id)]['retweet_level']
                         except KeyError:
                             self.data['accounts'][str(user_id)]['retweet_level'] = 2
+                            self.save_db()
                             retweet_level = self.data['accounts'][str(user_id)]['retweet_level']
                         try:
                             retweets = self.data['accounts'][str(user_id)]['retweets']
                         except KeyError:
                             self.data['accounts'][str(user_id)]['retweets'] = 0
+                            self.save_db()
                             retweets = self.data['accounts'][str(user_id)]['retweets']
                         self.api_self.send_direct_message(dm.message_create['sender_id'], "Hello " + str(user.name) +
                                                           "!\r\n\r\nThis app will "
@@ -280,24 +292,24 @@ class FloRetweetBot(object):
                                                           "* 'set-rt-level:3' to retweet everything FLO related that "
                                                           "this app finds for you!\r\n \r\nYour current retweet-level "
                                                           "is " + str(retweet_level) + "\r\n\r\nYou have made " +
-                                                          str(retweets) + " retweets for FLO!\r\nThis application is "
-                                                          "now connected to your Twitter Account. If you wish to "
+                                                          str(retweets) + " retweets for FLO!\r\n\r\nThis application "
+                                                          "is now connected to your Twitter Account. If you wish to "
                                                           "revoke its access, you can do so via Twitter’s "
                                                           "'Settings and Privacy' page "
                                                           "(https://twitter.com/settings/sessions) by clicking on the "
                                                           "'Revoke Access' button. However, once access is revoked, it "
                                                           "cannot be undone via Twitter. You must reauthorize it at "
                                                           "https://retweets.floblockchain.com/""\r\n"
-                                                          "\r\n\r\nAuthorizing FLO Retweets permits it to:\r\n"
-                                                          "\r\n\r\n* Read Tweets from your timeline\r\n"
+                                                          "\r\n\r\nAuthorizing FLO Retweets permits it to:"
+                                                          "\r\n* Read Tweets from your timeline\r\n"
                                                           "* See who you follow, and follow new people\r\n"
                                                           "* Update your profile\r\n"
                                                           "* Post Tweets for you\r\n"
                                                           "\r\n**HOWEVER, FLO RETWEETS WILL DO NONE OF THESE THINGS. "
                                                           "FLO RETWEETS WILL ONLY RETWEET RELEVENT FLO TWEETS**\r\n"
-                                                          "\r\nAuthorizing FLO Retweets does not permit it to:\r\n"
-                                                          "\r\n*  Access or otherwise view your Direct Messages (DMs)"
-                                                          "\r\n*  Access or otherwise view your email address\r\n"
+                                                          "\r\nAuthorizing FLO Retweets does not permit it to:"
+                                                          "\r\n* Access or otherwise view your Direct Messages (DMs)"
+                                                          "\r\n* Access or otherwise view your email address\r\n"
                                                           "* Access or otherwise view your Twitter password\r\n"
                                                           "\r\nBy authorizing any application, including the FLO "
                                                           "Retweets, you continue to operate under Twitter's Terms of "
@@ -305,7 +317,9 @@ class FloRetweetBot(object):
                                                           "shared with Twitter. For more information, see Twitter’s "
                                                           'Privacy Policy.'"\r\n"
                                                           "\r\nFor questions or additional information, send a direct "
-                                                          "message with the text 'help' to me! Please report issues "
+                                                          "message with the text 'help' to me or 'get-cmd-list' to see "
+                                                          "a list of all commands!\r\n\r\n"
+                                                          "Please report issues "
                                                           "to https://github.com/floblockchain/flo-retweets/issues – "
                                                           "Thank you!\r\n"
                                                           "\r\nBest regards,\r\n" + self.dm_sender_name + "!")
@@ -327,7 +341,10 @@ class FloRetweetBot(object):
                         self.api_self.send_direct_message(dm.message_create['sender_id'],
                                                           "Hello " + str(user.name) +
                                                           "!\r\n\r\nYour new retweet-level is " + str(retweet_level) +
-                                                          "!\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
+                                                          "\r\n\r\nFor questions or additional information, send a "
+                                                          "direct message with the text 'help' to me or 'get-cmd-list'"
+                                                          " to see a list of all commands!"
+                                                          "\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['received_botcmds'] += 1
                         self.save_db()
@@ -346,7 +363,10 @@ class FloRetweetBot(object):
                         self.api_self.send_direct_message(dm.message_create['sender_id'],
                                                           "Hello " + str(user.name) +
                                                           "!\r\n\r\nYour new retweet-level is " + str(retweet_level) +
-                                                          "!\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
+                                                          "\r\n\r\nFor questions or additional information, send a "
+                                                          "direct message with the text 'help' to me or 'get-cmd-list'"
+                                                          " to see a list of all commands!"
+                                                          "\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['received_botcmds'] += 1
                         self.save_db()
@@ -365,11 +385,55 @@ class FloRetweetBot(object):
                         self.api_self.send_direct_message(dm.message_create['sender_id'],
                                                           "Hello " + str(user.name) +
                                                           "!\r\n\r\nYour new retweet-level is " + str(retweet_level) +
-                                                          "!\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
+                                                          "\r\n\r\nFor questions or additional information, send a "
+                                                          "direct message with the text 'help' to me or 'get-cmd-list'"
+                                                          " to see a list of all commands!"
+                                                          "\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
+                        self.api_dm.destroy_direct_message(dm.id)
+                        self.data['statistic']['received_botcmds'] += 1
+                        self.save_db()
+                    elif "".join(str(dm.message_create['message_data']['text']).split()).lower() == "get-cmd-list":
+                        user = self.api_self.get_user(dm.message_create['sender_id'])
+                        print("Send command list to " + str(user.id) + " - " + str(user.screen_name))
+                        msg = ""
+                        msg += "* 'get-cmd-list'\r\n"
+                        msg += "* 'get-info'\r\n"
+                        msg += "* 'help'\r\n"
+                        msg += "* 'set-rt-level:1'\r\n"
+                        msg += "* 'set-rt-level:2'\r\n"
+                        msg += "* 'set-rt-level:3'\r\n"
+                        self.api_self.send_direct_message(dm.message_create['sender_id'],
+                                                          "Hello " +
+                                                          str(self.api_self.get_user(
+                                                              dm.message_create['sender_id']).name) +
+                                                          "!\r\n\r\n" + str(msg) + "\r\n"
+                                                          "\r\n\r\nFor questions or additional information, send a "
+                                                          "direct message with the text 'help' to me or 'get-cmd-list'"
+                                                          " to see a list of all commands!\r\n\r\n"
+                                                          "Best regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['received_botcmds'] += 1
                         self.save_db()
                     elif "".join(str(dm.message_create['message_data']['text']).split()).lower() == "get-info":
+                        user = self.api_self.get_user(dm.message_create['sender_id'])
+                        print("Send account infos to " + str(user.id) + " - " + str(user.screen_name))
+                        msg = ""
+                        msg += "Your leaderboard rank: ?\r\n"
+                        msg += "Your retweets: " + str(self.data['accounts'][str(user.id)]['retweets']) + "\r\n"
+                        msg += "Your retweet-level: " + str(self.data['accounts'][str(user.id)]['retweet_level'])
+                        self.api_self.send_direct_message(dm.message_create['sender_id'],
+                                                          "Hello " +
+                                                          str(self.api_self.get_user(
+                                                              dm.message_create['sender_id']).name) +
+                                                          "!\r\n\r\n" + str(msg) + "\r\n\r\n"
+                                                          "\r\n\r\nFor questions or additional information, send a "
+                                                          "direct message with the text 'help' to me or 'get-cmd-list' "
+                                                          "to see a list of all commands!\r\n\r\n"
+                                                          "Best regards,\r\n" + self.dm_sender_name + "!")
+                        self.api_dm.destroy_direct_message(dm.id)
+                        self.data['statistic']['received_botcmds'] += 1
+                        self.save_db()
+                    elif "".join(str(dm.message_create['message_data']['text']).split()).lower() == "get-bot-info":
                         user = self.api_self.get_user(dm.message_create['sender_id'])
                         admin_status = False
                         for admin_name in self.sys_admin_list:
@@ -396,10 +460,11 @@ class FloRetweetBot(object):
                                                               str(msg) + "\r\n\r\nBest regards,\r\n" +
                                                               self.dm_sender_name + "!")
                             self.data['statistic']['received_botcmds'] += 1
+                            self.save_db()
                         else:
-                            logging.info("Received 'get-info' from unauthorized account: " + str(user.id) + " - " +
+                            logging.info("Received 'get-bot-info' from unauthorized account: " + str(user.id) + " - " +
                                          str(user.screen_name))
-                            print("Received 'get-info' from unauthorized account: " + str(user.id) + " - " +
+                            print("Received 'get-bot-info' from unauthorized account: " + str(user.id) + " - " +
                                   str(user.screen_name))
                         self.api_dm.destroy_direct_message(dm.id)
             except tweepy.error.RateLimitError as error_msg:
@@ -487,6 +552,7 @@ class FloRetweetBot(object):
                                             self.data['accounts'][str(user_id)]['retweets'] += 1
                                         except KeyError:
                                             self.data['accounts'][str(user_id)]['retweets'] = 1
+                                        self.save_db()
                                         logging.debug("\tRetweeted:", user_id, str(self.api_self.get_user(user_id).screen_name))
                                     except tweepy.TweepError as error_msg:
                                         print("\tERROR: " + str(error_msg))
@@ -504,10 +570,18 @@ class FloRetweetBot(object):
                     self.save_db()
             print("Accounts: " + str(len(self.data['accounts'])))
             if self.parsed_args.account_list:
-                for twitter_id in self.data['accounts']:
-                    user = self.api_self.get_user(twitter_id)
-                    print("\t" + str(twitter_id) + "\t@" + user.screen_name + "       \tRT level: " +
-                          str(self.data['accounts'][twitter_id]['retweet_level']))
+                for user_id in self.data['accounts']:
+                    try:
+                        retweets = self.data['accounts'][str(user_id)]['retweets']
+                    except KeyError:
+                        self.data['accounts'][str(user_id)]['retweets'] = 0
+                        self.save_db()
+                        retweets = self.data['accounts'][str(user_id)]['retweets']
+                    user = self.api_self.get_user(user_id)
+                    print("\t" + str(self._fill_up_space(25, user_id)) + " @" +
+                          self._fill_up_space(20, user.screen_name) + " RT level: " +
+                          str(self.data['accounts'][user_id]['retweet_level']) + "\tretweets: " +
+                          str(retweets))
             print("Tweets: " + str(self.data['statistic']['tweets']))
             print("Retweets: " + str(self.data['statistic']['retweets']))
             print("Sent help DMs: " + str(self.data['statistic']['sent_help_dm']))

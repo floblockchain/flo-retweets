@@ -6,8 +6,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 [Semantic Versioning](http://semver.org/).
 
 ## (development stage/unreleased)
+
+## 0.5.0
 ### Added
 - forum link (rule-set) to DMs
+- get-info (retweets and rt-level)
+### Changed
+- DM text: https://github.com/floblockchain/flo-retweets/pull/1
+- renamed get-info to get-bot-info
+### Removed
+- unused css code in ./html/css/*
 ### Fixed
 - Typo in DM
 
