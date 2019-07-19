@@ -60,7 +60,7 @@ logging.getLogger('flo-retweets-bot').setLevel(logging.INFO)
 
 class FloRetweetBot(object):
     def __init__(self):
-        self.app_version = "0.6.3"
+        self.app_version = "0.7.0"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
@@ -100,6 +100,8 @@ class FloRetweetBot(object):
                                           "retweets": 0,
                                           "sent_help_dm": 0,
                                           "received_botcmds": 0}}
+        self.leaderboard_table = {}
+        self.leaderboard_table_string = ""
         self.bot_user_id = self.api_self.get_user(self.bot_twitter_account).id
         self.sys_admin_list = self.config['SYSTEM']['sys_admin_list'].split(",")
         self.load_db()
@@ -236,7 +238,7 @@ class FloRetweetBot(object):
                                                       'Privacy Policy.'"\r\n"
                                                       "\r\nFor questions or additional information, send a direct "
                                                       "message with the text 'help' to me or 'get-cmd-list' to see "
-                                                      "a list of all commands!\r\n\r\nPlease report issues to "
+                                                      "a list of all available commands!\r\n\r\nPlease report issues to "
                                                       + self.issues_report_to +
                                                       " - Thank you!\r\n"
                                                       "\r\nBest regards,\r\n" + self.dm_sender_name + "!")
@@ -329,7 +331,7 @@ class FloRetweetBot(object):
                                                           'Privacy Policy.'"\r\n"
                                                           "\r\nFor questions or additional information, send a direct "
                                                           "message with the text 'help' to me or 'get-cmd-list' to see "
-                                                          "a list of all commands!\r\n\r\n"
+                                                          "a list of all available commands!\r\n\r\n"
                                                           "Please report issues to "
                                                           + self.issues_report_to + " - Thank you!\r\n"
                                                           "\r\nBest regards,\r\n" + self.dm_sender_name + "!")
@@ -353,7 +355,7 @@ class FloRetweetBot(object):
                                                           "!\r\n\r\nYour new retweet-level is " + str(retweet_level) +
                                                           "\r\n\r\nFor questions or additional information, send a "
                                                           "direct message with the text 'help' to me or 'get-cmd-list'"
-                                                          " to see a list of all commands!"
+                                                          " to see a list of all available commands!"
                                                           "\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['received_botcmds'] += 1
@@ -375,7 +377,7 @@ class FloRetweetBot(object):
                                                           "!\r\n\r\nYour new retweet-level is " + str(retweet_level) +
                                                           "\r\n\r\nFor questions or additional information, send a "
                                                           "direct message with the text 'help' to me or 'get-cmd-list'"
-                                                          " to see a list of all commands!"
+                                                          " to see a list of all available commands!"
                                                           "\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['received_botcmds'] += 1
@@ -397,7 +399,7 @@ class FloRetweetBot(object):
                                                           "!\r\n\r\nYour new retweet-level is " + str(retweet_level) +
                                                           "\r\n\r\nFor questions or additional information, send a "
                                                           "direct message with the text 'help' to me or 'get-cmd-list'"
-                                                          " to see a list of all commands!"
+                                                          " to see a list of all available commands!"
                                                           "\r\n\r\nBest regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['received_botcmds'] += 1
@@ -419,7 +421,7 @@ class FloRetweetBot(object):
                                                           "!\r\n\r\n" + str(msg) + "\r\n"
                                                           "\r\n\r\nFor questions or additional information, send a "
                                                           "direct message with the text 'help' to me or 'get-cmd-list'"
-                                                          " to see a list of all commands!\r\n\r\n"
+                                                          " to see a list of all available commands!\r\n\r\n"
                                                           "Best regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['received_botcmds'] += 1
@@ -428,17 +430,18 @@ class FloRetweetBot(object):
                         user = self.api_self.get_user(dm.message_create['sender_id'])
                         print("Send account infos to " + str(user.id) + " - " + str(user.screen_name))
                         msg = ""
-                        msg += "Your leaderboard rank: ?\r\n"
+                        msg += "Your leaderboard rank: " + str(self.leaderboard_table[str(user.id)]['rank']) + "\r\n"
                         msg += "Your retweet-level: " + str(self.data['accounts'][str(user.id)]['retweet_level'])
                         msg += "\r\nYour retweets: " + str(self.data['accounts'][str(user.id)]['retweets']) + "\r\n"
                         self.api_self.send_direct_message(dm.message_create['sender_id'],
                                                           "Hello " +
                                                           str(self.api_self.get_user(
                                                               dm.message_create['sender_id']).name) +
-                                                          "!\r\n\r\n" + str(msg) + "\r\n\r\n"
+                                                          "!\r\n\r\n" + str(msg) + "\r\n\r\nTop 10 RT Leaderboard:\n\r"
+                                                          + self.leaderboard_table_string +
                                                           "\r\n\r\nFor questions or additional information, send a "
                                                           "direct message with the text 'help' to me or 'get-cmd-list' "
-                                                          "to see a list of all commands!\r\n\r\n"
+                                                          "to see a list of all available commands!\r\n\r\n"
                                                           "Best regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['received_botcmds'] += 1
@@ -490,6 +493,26 @@ class FloRetweetBot(object):
                               self.data['accounts'][str(user_id)]['access_token_secret'])
         api = tweepy.API(auth)
         return api
+
+    def leaderboard(self):
+        while True:
+            temp_leaderboard_table = {}
+            self.leaderboard_table_string = ""
+            print("Generating leaderboard ...")
+            logging.debug("Generating leaderboard ...")
+            for user_id in self.data['accounts']:
+                temp_leaderboard_table[user_id] = self.data['accounts'][user_id]['retweets']
+            rank = 1
+            self.leaderboard_table = {}
+            for key, value in reversed(sorted(temp_leaderboard_table.items(), key=lambda item: (item[1], item[0]))):
+                if rank <= 10:
+                    self.leaderboard_table_string += "#" + str(rank) + " " + \
+                                                     str(self.api_self.get_user(key).screen_name) + \
+                                                     " RT: " + str(value) + "\r\n"
+                self.leaderboard_table[key] = {'retweets': value,
+                                               'rank': rank}
+                rank += 1
+            time.sleep(60*60)
 
     def load_db(self):
         try:
@@ -634,6 +657,7 @@ class FloRetweetBot(object):
             time.sleep(30)
 
     def start_bot(self):
+        self.start_thread(self.leaderboard)
         self.start_thread(self.search_and_retweet)
         self.start_thread(self.check_direct_messages)
 
