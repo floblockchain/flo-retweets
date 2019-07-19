@@ -54,13 +54,13 @@ import tweepy
 logging.basicConfig(format="{asctime} [{levelname:8}] {process} {thread} {module} {pathname} {lineno}: {message}",
                     filename='flo_retweets_bot.log',
                     style="{")
-logging.getLogger(__name__).addHandler(logging.StreamHandler())
-logging.getLogger(__name__).setLevel(logging.INFO)
+logging.getLogger('flo-retweets-bot').addHandler(logging.StreamHandler())
+logging.getLogger('flo-retweets-bot').setLevel(logging.INFO)
 
 
 class FloRetweetBot(object):
     def __init__(self):
-        self.app_version = "0.6.1"
+        self.app_version = "0.6.3"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
@@ -547,6 +547,8 @@ class FloRetweetBot(object):
                         print("error: " + str(error_msg) + " user: " + source_account)
                     for condition in conditions_list:
                         for tweet in timeline:
+                            tweet_is_retweeted = False
+                            count_tweet = False
                             if condition == "any":
                                 retweet_permitted = True
                             else:
@@ -555,7 +557,6 @@ class FloRetweetBot(object):
                                 else:
                                     retweet_permitted = False
                             if retweet_permitted is True:
-                                tweet_is_retweeted = False
                                 try:
                                     if tweet.id in self.data['tweets']:
                                         tweet_is_retweeted = True
@@ -565,7 +566,6 @@ class FloRetweetBot(object):
                                     print(str(tweet.id) + " - " + str(tweet.text[0:80]).splitlines()[0] + " ...")
                                     logging.debug(str(tweet.id) + " - " + str(tweet.text[0:80]).splitlines()[0] +
                                                   " ...")
-                                    self.data['statistic']['tweets'] += 1
                                     accounts = deepcopy(self.data['accounts'])
                                     for user_id in accounts:
                                         if (str(user_id) != str(self.bot_user_id) or
@@ -578,6 +578,7 @@ class FloRetweetBot(object):
                                                 if not user_tweet.retweeted:
                                                     try:
                                                         user_tweet.retweet()
+                                                        count_tweet = True
                                                         print("\tRetweeted:", user_id,
                                                               str(self.api_self.get_user(user_id).screen_name))
                                                         self.data['statistic']['retweets'] += 1
@@ -599,6 +600,8 @@ class FloRetweetBot(object):
                                                           user_id)
                                                     del self.data['accounts'][user_id]
                                                     self.save_db()
+                                    if count_tweet:
+                                        self.data['statistic']['tweets'] += 1
                                     try:
                                         self.data['tweets'].append(tweet.id)
                                     except AttributeError:
@@ -614,7 +617,11 @@ class FloRetweetBot(object):
                         self.data['accounts'][str(user_id)]['retweets'] = 0
                         self.save_db()
                         retweets = self.data['accounts'][str(user_id)]['retweets']
-                    user = self.api_self.get_user(user_id)
+                    try:
+                        user = self.api_self.get_user(user_id)
+                    except tweepy.error.TweepError as error_msg:
+                        logging.error(str(error_msg))
+                        print("error: " + str(error_msg))
                     print("\t" + str(self._fill_up_space(25, user_id)) +
                           self._fill_up_space(20, "@" + user.screen_name) + " RT level: " +
                           str(self.data['accounts'][user_id]['retweet_level']) + "\tretweets: " +

@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## (development stage/unreleased)
 
+## 0.6.3
+### Added
+- tweepy.error.TweepError: Twitter error response: status code = 503 in row 617
+### Fixed
+- https://github.com/floblockchain/flo-retweets/projects/1#card-24177063
+
 ## 0.6.2
 ### Added
 - show retweets in welcome message
