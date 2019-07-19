@@ -482,7 +482,7 @@ class FloRetweetBot(object):
                 time.sleep(300)
             except tweepy.error.TweepError as error_msg:
                 logging.critical(str(error_msg))
-            time.sleep(70)
+            time.sleep(60)
 
     def get_api_user(self, user_id):
         auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
