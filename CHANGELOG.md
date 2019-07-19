@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## (development stage/unreleased)
 
+## 0.6.2
+### Added
+- show retweets in welcome message
+
 ## 0.6.1
 ### Fixed
 - Exception handling get timeline and auth denied

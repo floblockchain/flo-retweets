@@ -55,7 +55,7 @@ logging.basicConfig(format="{asctime} [{levelname:8}] {process} {thread} {module
                     filename='flo_retweets_bot.log',
                     style="{")
 logging.getLogger(__name__).addHandler(logging.StreamHandler())
-logging.getLogger(__name__).setLevel(logging.DEBUG)
+logging.getLogger(__name__).setLevel(logging.INFO)
 
 
 class FloRetweetBot(object):
@@ -195,6 +195,7 @@ class FloRetweetBot(object):
                     else:
                         logging.error(str(error_msg))
                 try:
+                    retweets = self.data['accounts'][str(user.id)]['retweets']
                     self.api_self.send_direct_message(user.id, "Hello " + str(user.name) +
                                                       "!\r\n\r\nThank you for joining " + self.app_name + "!\r\n\r\n"
                                                       + self.retweet_sources_description +
@@ -205,7 +206,9 @@ class FloRetweetBot(object):
                                                       "* 'set-rt-level:3' to retweet everything " + self.bot_topic +
                                                       " related that "
                                                       "this app finds for you!\r\n \r\nYour current retweet-level "
-                                                      "is " + str(retweet_level) + "\r\n\r\nThis application is "
+                                                      "is " + str(retweet_level) + "\r\n\r\nYou have made " +
+                                                      str(retweets) + " retweets for " + self.bot_topic + "!\r\n" +
+                                                      "\r\n\r\nThis application is "
                                                       "now connected to your Twitter Account. If you wish to "
                                                       "revoke its access, you can do so via Twitter’s "
                                                       "'Settings and Privacy' page "
@@ -621,7 +624,7 @@ class FloRetweetBot(object):
             print("Sent help DMs: " + str(self.data['statistic']['sent_help_dm']))
             print("Executed bot commands: " + str(self.data['statistic']['received_botcmds']))
             print("--------------------------------------------------------------------------------------")
-            time.sleep(60)
+            time.sleep(30)
 
     def start_bot(self):
         self.start_thread(self.search_and_retweet)
