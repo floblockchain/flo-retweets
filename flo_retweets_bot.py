@@ -12,6 +12,8 @@
 # Author: Oliver Zehentleitner
 #         https://about.me/oliver_zehentleitner/
 #
+# Copy Editor: Jason Schmitz
+#
 # Copyright (c) 2019, floblockchain Team (https://github.com/floblockchain)
 # All rights reserved.
 #

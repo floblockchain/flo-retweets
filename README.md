@@ -4,21 +4,53 @@ To participate in the campaign please join on https://retweets.floblockchain.com
 ## What is it
 The FLO version of https://github.com/bithon/Taubenschlag
 ## How to install
-- Twitter dev Account
+- Request a Twitter dev account: https://developer.twitter.com/en/account/environments
 - Create 2 apps (bot and dm) and API tokens for them
 - A domain routed to the server of the bot
 - Create a server with:
     - Python > 3.5
     - Apache 
-        - Website with html files
-        - Reverse Proxy to the bot in /oAuthTwitter
-        - SSL with lets encrypt
-    - Bot
-        - pip install -r requirements.txt
-        - config files
-        - how to run forever
-        - backup
-        - autostart
+```
+# apt-get install apache2
+# apt-get install python-certbot-apache
+```
+Set the hostname in `/etc/apache2/sites-enabled/000-default` to the public domain name (yes is port 80)
+```
+# systemctl restart apache2
+# certbot --apache
+# systemctl restart apache2
+# certbot certonly
+```
+Follow the certbot wizard.
+Add this 2 lines to `file_name_missing`:
+```
+Code reverse proxy
+```
+Download FLO Retweets Bot to `/opt` and unzip it. Make the app available in `/opt/flo-retweets`.
+```
+cd /var/www/html 
+ln -s /opt/flo-retweets/html/* .
+```
+Install requirements:
+```
+apt install python3-pip
+python3 -m pip install -r requirements
+```
+Create two apps in https://developer.twitter.com/en/account/environments
+1. Is the main app with read+write permissions (user auth to this app)
+2. Is the DM sending interface app with read+write+dm permissions (user dont know about his app)
+
+Copy the access tokens from the two twitter apps to `./conf.d/secrets.cfg` (use the template in 
+`./conf.d/secrets.cfg_empty`).
+
+Modify `./conf.d/main.cfg` if needed.
+
+Modify `./conf.d/rt-level-rule-set.cfg` to setup RT sources.
+
+- autostart &  how to run forever
+- backup
+- auto renew certbot
+
 ## Report bugs or suggest features
 https://github.com/floblockchain/flo-retweets/issues/new/choose
 ## Todo
