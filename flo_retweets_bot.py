@@ -7,6 +7,8 @@
 # Project website: https://retweets.floblockchain.com/
 # GitHub: https://github.com/floblockchain/flo-retweets
 #
+# This bot is a modified version of 'Taubenschlag': https://github.com/bithon/Taubenschlag
+#
 # Author: Oliver Zehentleitner
 #         https://about.me/oliver_zehentleitner/
 #
@@ -180,51 +182,44 @@ class FloRetweetBot(object):
                         logging.error(str(error_msg))
                 try:
                     self.api_self.send_direct_message(user.id, "Hello " + str(user.name) +
-                                                      "!\r\n\r\nThank you for joining FLO Retweets! This app will retweet all 
-                                                      "tweets sent from the @floblockchain twitter account 
-                                                      "automatically!\r\n"
-                                                      
-                                                      "\r\n\r\nTo set a retweet level, send a DM to @flodatabot with the"
-                                                      "following text:\r\n"
-                                                   
-                                                      "\r\n\r\n*  'set-rt-level:1' to retweet only first class posts\r\n"
-                                                      "*  'set-rt-level:2' to be informative\r\n"
-                                                      "*  'set-rt-level:3' to retweet everything FLO related that this app"
-                                                      "finds for you!\r\n"
-                                                      
-                                                      "\r\n\r\nYour current retweet-level is " + str(retweet_level) + "\r\n"
-                                                      
-                                                      "\r\n\r\nThis application is now connected to your Twitter Account." 
-                                                      "If you wish to revoke its access, you can do so via Twitter’s 'Settings 
-                                                      "and Privacy' page (https://twitter.com/settings/sessions) by clicking 
-                                                      "on the 'Revoke Access' button. However, once access is revoked, it" 
-                                                      "cannot be undone via Twitter. You must reauthorize it at"
+                                                      "!\r\n\r\nThank you for joining FLO Retweets! This app will "
+                                                      "retweet all tweets sent from the @floblockchain twitter "
+                                                      "account automatically!\r\n"
+                                                      "\r\nTo set a retweet level, send a DM to @flodatabot with "
+                                                      "the following text:\r\n"
+                                                      "* 'set-rt-level:1' to retweet only first class posts\r\n"
+                                                      "* 'set-rt-level:2' to be informative\r\n"
+                                                      "* 'set-rt-level:3' to retweet everything FLO related that "
+                                                      "this app finds for you!\r\n \r\nYour current retweet-level "
+                                                      "is " + str(retweet_level) + "\r\n\r\nThis application is "
+                                                      "now connected to your Twitter Account. If you wish to "
+                                                      "revoke its access, you can do so via Twitter’s "
+                                                      "'Settings and Privacy' page "
+                                                      "(https://twitter.com/settings/sessions) by clicking on the "
+                                                      "'Revoke Access' button. However, once access is revoked, it "
+                                                      "cannot be undone via Twitter. You must reauthorize it at "
                                                       "https://retweets.floblockchain.com/""\r\n"
-
                                                       "\r\n\r\nAuthorizing FLO Retweets permits it to:\r\n"
-                                                      
                                                       "\r\n\r\n*  Read Tweets from your timeline\r\n"
-                                                      "*  See who you follow, and follow new people\r\n"
-                                                      "*  Update your profile\r\n"
-                                                      "*  Post Tweets for you\r\n"
-                                                      
-                                                      "\r\n\r\n**HOWEVER, FLO RETWEETS WILL DO NONE OF THESE THINGS. FLO 
-                                                      "RETWEETS WILL ONLY RETWEET RELEVENT FLO TWEETS**\r\n"
-                                                      
-                                                      "\r\n\r\nAAuthorizing FLO Retweets does not permit it to:\r\n"
-                                                      
-                                                      "\r\n\r\n*  Access or otherwise view your Direct Messages (DMs)\r\n"
-                                                      "*  Access or otherwise view your email address\r\n"
-                                                      "*  Access or otherwise view your Twitter password\r\n"
-                                                      
-                                                      "\r\n\r\nBy authorizing any application, including the FLO Retweets, 
-                                                      "you continue to operate under Twitter's Terms of Service. Some usage 
-                                                      "data will be shared with Twitter. For more information, see Twitter’s 
+                                                      "* See who you follow, and follow new people\r\n"
+                                                      "* Update your profile\r\n"
+                                                      "* Post Tweets for you\r\n"
+                                                      "\r\n**HOWEVER, FLO RETWEETS WILL DO NONE OF THESE THINGS. "
+                                                      "FLO RETWEETS WILL ONLY RETWEET RELEVENT FLO TWEETS**\r\n"
+                                                      "\r\nAuthorizing FLO Retweets does not permit it to:\r\n"
+                                                      "\r\n* Access or otherwise view your Direct Messages (DMs)"
+                                                      "\r\n* Access or otherwise view your email address\r\n"
+                                                      "* Access or otherwise view your Twitter password\r\n"
+                                                      "\r\nBy authorizing any application, including the FLO "
+                                                      "Retweets, you continue to operate under Twitter's Terms of "
+                                                      "Service. Some usage data will be "
+                                                      "shared with Twitter. For more information, see Twitter’s "
                                                       'Privacy Policy.'"\r\n"
-                                                      
-                                                       "\r\n\r\nFor questions or additional information, send a direct message 
-                                                      "with the text 'help' to me! This app is a BETA version. Please report 
-                                                      "issues to @UNICORN_OZ – Thank you!\r\n" 
+                                                      "\r\nFor questions or additional information, send a direct "
+                                                      "message with the text 'help' to me! Please report issues "
+                                                      "to https://github.com/floblockchain/flo-retweets/issues – "
+                                                      "Thank you!\r\n"
+                                                      "\r\nBest regards,\r\n" + self.dm_sender_name + "!")
 
                     # send status message to bot account
                     self.send_status_message_new_user(self.bot_user_id, user.id)
@@ -274,32 +269,46 @@ class FloRetweetBot(object):
                         except KeyError:
                             self.data['accounts'][str(user_id)]['retweets'] = 0
                             retweets = self.data['accounts'][str(user_id)]['retweets']
-                        self.api_self.send_direct_message(dm.message_create['sender_id'],
-                                                          "Hello " + str(user.name) + "!\r\n\r\n"
-                                                          "If you wish to disable the access of our app, "
-                                                          "please visit https://twitter.com/settings/applications and "
-                                                          "remove the authorization!"
-                                                          "\r\n\r\nOnce the authorization is disabled, we are going "
-                                                          "to delete your access token from our system and it wont "
-                                                          "work anymore if you enable the access again. In such a "
-                                                          "case you would have to authorize the app again on twitter:"
-                                                          "\r\n" + self.base_url + "/oAuthTwitter/start"
-                                                          "\r\n\r\nTo set a retweet"
-                                                          "-level please write a DM with the text:\r\n"
-                                                          "- 'set-rt-level:1' to retweet only first class posts\r\n"
-                                                          "- 'set-rt-level:2' to be informative\r\n"
-                                                          "- 'set-rt-level:3' to retweet everything what this bot "
-                                                          "finds for you (related to FLO!)\r\n\r\n"
-                                                          "Definition of retweet-levels: "
-                                                          "https://forum.flo.cash/t/flo-retweets-bot/292\r\n\r\n"
-                                                          "Your current "
-                                                          "retweet-level is " + str(retweet_level) + "!\r\n\r\n"
-                                                          "You have made " + str(retweets) + " retweets for FLO!"
-                                                          "\r\n\r\nFor further "
-                                                          "information write a direct message with the text 'help' to "
-                                                          "me @" + str(self.config['SYSTEM']['bot_twitter_account']) +
-                                                          "!\r\n\r\nBest "
-                                                          "regards,\r\n" + self.dm_sender_name + "!")
+                        self.api_self.send_direct_message(dm.message_create['sender_id'], "Hello " + str(user.name) +
+                                                          "!\r\n\r\nThis app will "
+                                                          "retweet all tweets sent from the @floblockchain twitter "
+                                                          "account automatically!\r\n"
+                                                          "\r\nTo set a retweet level, send a DM to @flodatabot with "
+                                                          "the following text:\r\n"
+                                                          "* 'set-rt-level:1' to retweet only first class posts\r\n"
+                                                          "* 'set-rt-level:2' to be informative\r\n"
+                                                          "* 'set-rt-level:3' to retweet everything FLO related that "
+                                                          "this app finds for you!\r\n \r\nYour current retweet-level "
+                                                          "is " + str(retweet_level) + "\r\n\r\nYou have made " +
+                                                          str(retweets) + " retweets for FLO!\r\nThis application is "
+                                                          "now connected to your Twitter Account. If you wish to "
+                                                          "revoke its access, you can do so via Twitter’s "
+                                                          "'Settings and Privacy' page "
+                                                          "(https://twitter.com/settings/sessions) by clicking on the "
+                                                          "'Revoke Access' button. However, once access is revoked, it "
+                                                          "cannot be undone via Twitter. You must reauthorize it at "
+                                                          "https://retweets.floblockchain.com/""\r\n"
+                                                          "\r\n\r\nAuthorizing FLO Retweets permits it to:\r\n"
+                                                          "\r\n\r\n* Read Tweets from your timeline\r\n"
+                                                          "* See who you follow, and follow new people\r\n"
+                                                          "* Update your profile\r\n"
+                                                          "* Post Tweets for you\r\n"
+                                                          "\r\n**HOWEVER, FLO RETWEETS WILL DO NONE OF THESE THINGS. "
+                                                          "FLO RETWEETS WILL ONLY RETWEET RELEVENT FLO TWEETS**\r\n"
+                                                          "\r\nAuthorizing FLO Retweets does not permit it to:\r\n"
+                                                          "\r\n*  Access or otherwise view your Direct Messages (DMs)"
+                                                          "\r\n*  Access or otherwise view your email address\r\n"
+                                                          "* Access or otherwise view your Twitter password\r\n"
+                                                          "\r\nBy authorizing any application, including the FLO "
+                                                          "Retweets, you continue to operate under Twitter's Terms of "
+                                                          "Service. Some usage data will be "
+                                                          "shared with Twitter. For more information, see Twitter’s "
+                                                          'Privacy Policy.'"\r\n"
+                                                          "\r\nFor questions or additional information, send a direct "
+                                                          "message with the text 'help' to me! Please report issues "
+                                                          "to https://github.com/floblockchain/flo-retweets/issues – "
+                                                          "Thank you!\r\n"
+                                                          "\r\nBest regards,\r\n" + self.dm_sender_name + "!")
                         self.api_dm.destroy_direct_message(dm.id)
                         self.data['statistic']['sent_help_dm'] += 1
                         self.save_db()
