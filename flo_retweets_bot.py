@@ -355,7 +355,6 @@ class FloRetweetBot(object):
                             msg += "Retweets: " + str(self.data['statistic']['retweets']) + "\r\n"
                             msg += "Sent help DMs: " + str(self.data['statistic']['sent_help_dm']) + "\r\n"
                             msg += "Executed bot commands: " + str(self.data['statistic']['received_botcmds'])
-
                             self.api_self.send_direct_message(dm.message_create['sender_id'],
                                                               "Hello " +
                                                               str(self.api_self.get_user(
