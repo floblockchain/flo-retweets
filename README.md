@@ -2,7 +2,7 @@
 ## Welcome to FLO Retweets! 
 To participate in the campaign please join on https://retweets.floblockchain.com!
 ## What is it
-This bot runs this campaign: https://retweets.floblockchain.com and is based on https://github.com/bithon/Taubenschlag
+The FLO version of https://github.com/bithon/Taubenschlag
 ## How to install
 - Twitter dev Account
 - Create 2 apps (bot and dm) and API tokens for them

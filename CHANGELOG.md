@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 [Semantic Versioning](http://semver.org/).
 
 ## (development stage/unreleased)
+## 0.6.0
+### Added
+- rt sources: https://github.com/floblockchain/flo-retweets/projects/1#card-24147426 to configure in 
+  `./conf.d/rt-level-rule-set.cfg`
 
 ## 0.5.0
 ### Added

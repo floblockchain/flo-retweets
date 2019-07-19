@@ -60,7 +60,7 @@ logging.getLogger(__name__).setLevel(logging.DEBUG)
 
 class FloRetweetBot(object):
     def __init__(self):
-        self.app_version = "0.5.0"
+        self.app_version = "0.6.0"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
@@ -68,6 +68,7 @@ class FloRetweetBot(object):
         self.base_url = self.config['SYSTEM']['base_url']
         self.bot_topic = self.config['SYSTEM']['bot_topic']
         self.bot_twitter_account = self.config['SYSTEM']['bot_twitter_account']
+        self.default_retweet_level = self.config['SYSTEM']['default_retweet_level']
         self.issues_report_to = self.config['SYSTEM']['issues_report_to']
         self.retweet_sources_description = self.config['SYSTEM']['retweet_sources_description']
         self.consumer_key = self.config['SECRETS']['consumer_key']
@@ -172,7 +173,7 @@ class FloRetweetBot(object):
                     retweets_value = 0
                 self.data['accounts'][str(user.id)] = {'access_token': str(auth.access_token),
                                                        'access_token_secret': str(auth.access_token_secret),
-                                                       'retweet_level': 3,
+                                                       'retweet_level': self.default_retweet_level,
                                                        'retweets': retweets_value}
                 self.save_db()
                 logging.info("saved new oAuth access of twitter user " + str(user.name) + "!")
@@ -530,50 +531,73 @@ class FloRetweetBot(object):
         while True:
             print("======================================================================================")
             print("Starting new round at " + str(datetime.datetime.now()))
-            timeline = self.api_self.user_timeline('FLOblockchain')
-            for tweet in timeline:
-                tweet_is_retweeted = False
-                try:
-                    if tweet.id in self.data['tweets']:
-                        tweet_is_retweeted = True
-                except TypeError:
-                    pass
-                if tweet_is_retweeted is False:
-                    print(str(tweet.id) + " - " + str(tweet.text[0:80]).splitlines()[0] + " ...")
-                    logging.debug(str(tweet.id) + " - " + str(tweet.text[0:80]).splitlines()[0] + " ...")
-                    self.data['statistic']['tweets'] += 1
-                    accounts = deepcopy(self.data['accounts'])
-                    for user_id in accounts:
-                        if str(user_id) != str(self.bot_user_id) or \
-                                self.config['SYSTEM']['let_bot_account_retweet'] == "True":
-                            api = self.get_api_user(user_id)
-                            try:
-                                user_tweet = api.get_status(tweet.id)
-                                if not user_tweet.retweeted:
+            rt_levels = 3
+            while rt_levels > 0:
+                print("Retweeting level " + str(rt_levels) + " tweets:")
+                conditions_list = self.config['RT-LEVEL-' + str(rt_levels)]['conditions'].split(",")
+                source_accounts_list = self.config['RT-LEVEL-' + str(rt_levels)]['from'].split(",")
+                for source_account in source_accounts_list:
+                    timeline = self.api_self.user_timeline(source_account)
+                    for condition in conditions_list:
+                        for tweet in timeline:
+                            if condition == "any":
+                                retweet_permitted = True
+                            else:
+                                if condition in tweet.text:
+                                    retweet_permitted = True
+                                else:
+                                    retweet_permitted = False
+                            if retweet_permitted is True:
+                                tweet_is_retweeted = False
+                                try:
+                                    if tweet.id in self.data['tweets']:
+                                        tweet_is_retweeted = True
+                                except TypeError:
+                                    pass
+                                if tweet_is_retweeted is False:
+                                    print(str(tweet.id) + " - " + str(tweet.text[0:80]).splitlines()[0] + " ...")
+                                    logging.debug(str(tweet.id) + " - " + str(tweet.text[0:80]).splitlines()[0] +
+                                                  " ...")
+                                    self.data['statistic']['tweets'] += 1
+                                    accounts = deepcopy(self.data['accounts'])
+                                    for user_id in accounts:
+                                        if (str(user_id) != str(self.bot_user_id) or
+                                            self.config['SYSTEM']['let_bot_account_retweet'] == "True") \
+                                                and int(self.data['accounts'][str(user_id)]['retweet_level']) >= \
+                                                rt_levels:
+                                            api = self.get_api_user(user_id)
+                                            try:
+                                                user_tweet = api.get_status(tweet.id)
+                                                if not user_tweet.retweeted:
+                                                    try:
+                                                        user_tweet.retweet()
+                                                        print("\tRetweeted:", user_id,
+                                                              str(self.api_self.get_user(user_id).screen_name))
+                                                        self.data['statistic']['retweets'] += 1
+                                                        try:
+                                                            self.data['accounts'][str(user_id)]['retweets'] += 1
+                                                        except KeyError:
+                                                            self.data['accounts'][str(user_id)]['retweets'] = 1
+                                                        self.save_db()
+                                                        logging.debug("\tRetweeted:", user_id,
+                                                                      str(self.api_self.get_user(user_id).screen_name))
+                                                    except tweepy.TweepError as error_msg:
+                                                        print("\tERROR: " + str(error_msg))
+                                                        logging.error("can not retweet: " + str(error_msg))
+                                            except tweepy.error.TweepError as error_msg:
+                                                if "Invalid or expired token" in str(error_msg):
+                                                    logging.info("invalid or expired token, going to remove user " +
+                                                                 user_id)
+                                                    print("\tERROR: Invalid or expired token, going to remove user " +
+                                                          user_id)
+                                                    del self.data['accounts'][user_id]
+                                                    self.save_db()
                                     try:
-                                        user_tweet.retweet()
-                                        print("\tRetweeted:", user_id, str(self.api_self.get_user(user_id).screen_name))
-                                        self.data['statistic']['retweets'] += 1
-                                        try:
-                                            self.data['accounts'][str(user_id)]['retweets'] += 1
-                                        except KeyError:
-                                            self.data['accounts'][str(user_id)]['retweets'] = 1
-                                        self.save_db()
-                                        logging.debug("\tRetweeted:", user_id, str(self.api_self.get_user(user_id).screen_name))
-                                    except tweepy.TweepError as error_msg:
-                                        print("\tERROR: " + str(error_msg))
-                                        logging.error("can not retweet: " + str(error_msg))
-                            except tweepy.error.TweepError as error_msg:
-                                if "Invalid or expired token" in str(error_msg):
-                                    logging.info("invalid or expired token, going to remove user " + user_id)
-                                    print("\tERROR: Invalid or expired token, going to remove user " + user_id)
-                                    del self.data['accounts'][user_id]
+                                        self.data['tweets'].append(tweet.id)
+                                    except AttributeError:
+                                        self.data["tweets"] = [tweet.id]
                                     self.save_db()
-                    try:
-                        self.data['tweets'].append(tweet.id)
-                    except AttributeError:
-                        self.data["tweets"] = [tweet.id]
-                    self.save_db()
+                rt_levels -= 1
             print("Accounts: " + str(len(self.data['accounts'])))
             if self.parsed_args.account_list:
                 for user_id in self.data['accounts']:
