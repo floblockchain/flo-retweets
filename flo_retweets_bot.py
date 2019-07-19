@@ -197,7 +197,7 @@ class FloRetweetBot(object):
                     self.api_self.send_direct_message(user.id, "Hello " + str(user.name) +
                                                       "!\r\n\r\nThank you for joining " + self.app_name + "!\r\n\r\n"
                                                       + self.retweet_sources_description +
-                                                      "\r\n\r\nTo set a retweet level, send a DM to @ " +
+                                                      "\r\n\r\nTo set a retweet level, send a DM to @" +
                                                       self.bot_twitter_account + " with the following text:\r\n"
                                                       "* 'set-rt-level:1' to retweet only first class posts\r\n"
                                                       "* 'set-rt-level:2' to be informative\r\n"
