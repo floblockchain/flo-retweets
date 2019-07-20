@@ -62,7 +62,7 @@ logging.getLogger('flo-retweets-bot').setLevel(logging.INFO)
 
 class FloRetweetBot(object):
     def __init__(self):
-        self.app_version = "0.7.1"
+        self.app_version = "0.8.0"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
@@ -104,6 +104,7 @@ class FloRetweetBot(object):
                                           "received_botcmds": 0}}
         self.leaderboard_table = {}
         self.leaderboard_table_string = ""
+        self.leaderboard_last_generation = "?"
         self.bot_user_id = self.api_self.get_user(self.bot_twitter_account).id
         self.sys_admin_list = self.config['SYSTEM']['sys_admin_list'].split(",")
         self.load_db()
@@ -179,7 +180,7 @@ class FloRetweetBot(object):
                                                        'access_token_secret': str(auth.access_token_secret),
                                                        'retweet_level': self.default_retweet_level,
                                                        'retweets': retweets_value}
-                self.save_db()
+                self.save_db(extra_string="_all_accounts")
                 logging.info("saved new oAuth access of twitter user " + str(user.name) + "!")
                 print("Saved new oAuth token of @" + str(user.screen_name) + " (" + str(user.name) + ")!")
                 retweet_level = self.data['accounts'][str(user.id)]['retweet_level']
@@ -244,7 +245,6 @@ class FloRetweetBot(object):
                                                       + self.issues_report_to +
                                                       " - Thank you!\r\n"
                                                       "\r\nBest regards,\r\n" + self.dm_sender_name + "!")
-
                     # send status message to bot account
                     self.send_status_message_new_user(self.bot_user_id, user.id)
                     # send status message to sys_admins
@@ -411,6 +411,7 @@ class FloRetweetBot(object):
                         print("Send command list to " + str(user.id) + " - " + str(user.screen_name))
                         msg = ""
                         msg += "* 'get-cmd-list'\r\n"
+                        msg += "* 'get-bot-info (admins only)\r\n"
                         msg += "* 'get-info'\r\n"
                         msg += "* 'help'\r\n"
                         msg += "* 'set-rt-level:1'\r\n"
@@ -439,7 +440,8 @@ class FloRetweetBot(object):
                                                           "Hello " +
                                                           str(self.api_self.get_user(
                                                               dm.message_create['sender_id']).name) +
-                                                          "!\r\n\r\n" + str(msg) + "\r\n\r\nTop 10 RT Leaderboard:\n\r"
+                                                          "!\r\n\r\n" + str(msg) + "\r\n\r\nTOP 10 LEADERBOARD\n\r"
+                                                          "===================\n\r"
                                                           + self.leaderboard_table_string +
                                                           "\r\n\r\nFor questions or additional information, send a "
                                                           "direct message with the text 'help' to me or 'get-cmd-list' "
@@ -455,17 +457,34 @@ class FloRetweetBot(object):
                             if str(user.id) == str(self.api_self.get_user(screen_name=admin_name).id):
                                 admin_status = True
                         if str(user.id) == str(self.bot_user_id) or admin_status is True:
+                            subscriptions_rt_level_1 = 0
+                            subscriptions_rt_level_2 = 0
+                            subscriptions_rt_level_3 = 0
                             print("Send bot infos to " + str(user.id) + " - " + str(user.screen_name))
                             msg = ""
-                            msg += "Bot: " + self.app_name + " Bot " + self.app_version + "\r\n"
+                            msg += "Bot: " + self.app_name + " Bot " + self.app_version + "\r\n\r\n"
                             msg += "Accounts: " + str(len(self.data['accounts'])) + "\r\n"
                             for user_id in self.data['accounts']:
+                                if str(self.data['accounts'][user_id]['retweet_level']) == "1":
+                                    subscriptions_rt_level_1 += 1
+                                    subscriptions_rt_level_2 += 1
+                                    subscriptions_rt_level_3 += 1
+                                elif str(self.data['accounts'][user_id]['retweet_level']) == "2":
+                                    subscriptions_rt_level_2 += 1
+                                    subscriptions_rt_level_3 += 1
+                                elif str(self.data['accounts'][user_id]['retweet_level']) == "3":
+                                    subscriptions_rt_level_3 += 1
                                 user = self.api_self.get_user(user_id)
-                                msg += "\t" + str(user_id) + " - @" + user.screen_name + " - RT level: " + \
-                                       str(self.data['accounts'][user_id]['retweet_level']) + "\r\n"
-                            msg += "Tweets: " + str(self.data['statistic']['tweets']) + "\r\n"
-                            msg += "Retweets: " + str(self.data['statistic']['retweets']) + "\r\n"
-                            msg += "Sent help DMs: " + str(self.data['statistic']['sent_help_dm']) + "\r\n"
+                                msg += "@" + user.screen_name + " - level : " + \
+                                       str(self.data['accounts'][user_id]['retweet_level']) + " - rt: " + \
+                                       str(self.data['accounts'][user_id]['retweets']) + "\r\n"
+                            msg += "Available accounts per RT level:\r\n"
+                            msg += "* 1: " + str(subscriptions_rt_level_1) + "\r\n"
+                            msg += "* 2: " + str(subscriptions_rt_level_2) + "\r\n"
+                            msg += "* 3: " + str(subscriptions_rt_level_3) + "\r\n\r\n"
+                            msg += "Tweets: " + str(self.data['statistic']['tweets']) + "\r\n\r\n"
+                            msg += "Retweets: " + str(self.data['statistic']['retweets']) + "\r\n\r\n"
+                            msg += "Sent help DMs: " + str(self.data['statistic']['sent_help_dm']) + "\r\n\r\n"
                             msg += "Executed bot commands: " + str(self.data['statistic']['received_botcmds'])
                             self.api_self.send_direct_message(dm.message_create['sender_id'],
                                                               "Hello " +
@@ -498,6 +517,7 @@ class FloRetweetBot(object):
 
     def leaderboard(self):
         while True:
+            time_start = time.time()
             temp_leaderboard_table = {}
             self.leaderboard_table_string = ""
             print("Generating leaderboard ...")
@@ -510,22 +530,16 @@ class FloRetweetBot(object):
                 if rank <= 10:
                     self.leaderboard_table_string += "#" + str(rank) + " " + \
                                                      str(self.api_self.get_user(key).screen_name) + \
-                                                     " RT: " + str(value) + "\r\n"
+                                                     " - " + str(value) + " retweets\r\n"
                 self.leaderboard_table[key] = {'retweets': value,
                                                'rank': rank}
                 rank += 1
-            time.sleep(60*60)
+            time_end = time.time()
+            run_time = time_end - time_start
+            print("Leaderboard generation runtime: " + str(run_time) + " seconds")
+            time.sleep(60*20)
 
     def load_db(self):
-        try:
-            os.remove("./db/" + self.config['DATABASE']['db_file'] + "_backup")
-        except FileNotFoundError:
-            pass
-        try:
-            copyfile("./db/" + self.config['DATABASE']['db_file'],
-                     "./db/" + self.config['DATABASE']['db_file'] + "_backup")
-        except FileNotFoundError:
-            pass
         try:
             with open("./db/" + self.config['DATABASE']['db_file'], 'r') as f:
                 try:
@@ -547,7 +561,16 @@ class FloRetweetBot(object):
         auth.set_access_token(self.access_token_dm, self.access_token_secret_dm)
         self.api_dm = tweepy.API(auth)
 
-    def save_db(self):
+    def save_db(self, extra_string=""):
+        try:
+            os.remove("./db/" + self.config['DATABASE']['db_file'] + "_backup" + extra_string)
+        except FileNotFoundError:
+            pass
+        try:
+            copyfile("./db/" + self.config['DATABASE']['db_file'],
+                     "./db/" + self.config['DATABASE']['db_file'] + "_backup" + extra_string)
+        except FileNotFoundError:
+            pass
         try:
             with open("./db/" + self.config['DATABASE']['db_file'], 'w+') as f:
                 json.dump(self.data, f)
@@ -635,7 +658,19 @@ class FloRetweetBot(object):
                 rt_levels -= 1
             print("Accounts: " + str(len(self.data['accounts'])))
             if self.parsed_args.account_list:
+                subscriptions_rt_level_1 = 0
+                subscriptions_rt_level_2 = 0
+                subscriptions_rt_level_3 = 0
                 for user_id in self.data['accounts']:
+                    if str(self.data['accounts'][user_id]['retweet_level']) == "1":
+                        subscriptions_rt_level_1 += 1
+                        subscriptions_rt_level_2 += 1
+                        subscriptions_rt_level_3 += 1
+                    elif str(self.data['accounts'][user_id]['retweet_level']) == "2":
+                        subscriptions_rt_level_2 += 1
+                        subscriptions_rt_level_3 += 1
+                    elif str(self.data['accounts'][user_id]['retweet_level']) == "3":
+                        subscriptions_rt_level_3 += 1
                     try:
                         retweets = self.data['accounts'][str(user_id)]['retweets']
                     except KeyError:
@@ -651,6 +686,10 @@ class FloRetweetBot(object):
                           self._fill_up_space(20, "@" + user.screen_name) + " RT level: " +
                           str(self.data['accounts'][user_id]['retweet_level']) + "\tretweets: " +
                           str(retweets))
+            print("Available accounts per RT level:")
+            print("\t1: " + str(subscriptions_rt_level_1))
+            print("\t2: " + str(subscriptions_rt_level_2))
+            print("\t3: " + str(subscriptions_rt_level_3))
             print("Tweets: " + str(self.data['statistic']['tweets']))
             print("Retweets: " + str(self.data['statistic']['retweets']))
             print("Sent help DMs: " + str(self.data['statistic']['sent_help_dm']))
@@ -660,6 +699,8 @@ class FloRetweetBot(object):
 
     def start_bot(self):
         self.start_thread(self.leaderboard)
+        # wait to finish the FIRST leaderboard generation
+        time.sleep(5)
         self.start_thread(self.search_and_retweet)
         self.start_thread(self.check_direct_messages)
 

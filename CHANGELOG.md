@@ -7,8 +7,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## (development stage/unreleased)
 
+## 0.8.0
+### Added
+- https://github.com/floblockchain/flo-retweets/projects/1#card-24191107 + to console
+- print leaderboard generation runtime
+- create backup on every new user account
+### Changed
+- get-bot-info: user-list
+- text format
+### Fixed
+- creation of backup file was in load db instead of save db
+
 ## 0.7.1
-### FIX
+### Fixed
 - hash and keywords dont matter if chars are big or small
 
 ## 0.7.0
