@@ -62,7 +62,7 @@ logging.getLogger('flo-retweets-bot').setLevel(logging.INFO)
 
 class FloRetweetBot(object):
     def __init__(self):
-        self.app_version = "0.7.0"
+        self.app_version = "0.7.1"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
@@ -577,7 +577,7 @@ class FloRetweetBot(object):
                             if condition == "any":
                                 retweet_permitted = True
                             else:
-                                if condition in tweet.text:
+                                if str(condition).lower() in str(tweet.text).lower():
                                     retweet_permitted = True
                                 else:
                                     retweet_permitted = False

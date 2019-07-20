@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## (development stage/unreleased)
 
+## 0.7.1
+### FIX
+- hash and keywords dont matter if chars are big or small
+
 ## 0.7.0
 ### Added
 - https://github.com/floblockchain/flo-retweets/projects/1#card-24172714
