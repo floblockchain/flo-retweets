@@ -583,10 +583,11 @@ class FloRetweetBot(object):
             print("======================================================================================")
             print("Starting new round at " + str(datetime.datetime.now()))
             rt_levels = 3
-            while rt_levels > 0:
-                print("Retweeting level " + str(rt_levels) + " tweets:")
-                conditions_list = self.config['RT-LEVEL-' + str(rt_levels)]['conditions'].split(",")
-                source_accounts_list = self.config['RT-LEVEL-' + str(rt_levels)]['from'].split(",")
+            round = 1
+            while rt_levels >= round:
+                print("Retweeting level " + str(round) + " tweets:")
+                conditions_list = self.config['RT-LEVEL-' + str(round)]['conditions'].split(",")
+                source_accounts_list = self.config['RT-LEVEL-' + str(round)]['from'].split(",")
                 for source_account in source_accounts_list:
                     try:
                         timeline = self.api_self.user_timeline(source_account)
@@ -619,7 +620,7 @@ class FloRetweetBot(object):
                                         if (str(user_id) != str(self.bot_user_id) or
                                             self.config['SYSTEM']['let_bot_account_retweet'] == "True") \
                                                 and int(self.data['accounts'][str(user_id)]['retweet_level']) >= \
-                                                rt_levels:
+                                                round:
                                             api = self.get_api_user(user_id)
                                             try:
                                                 user_tweet = api.get_status(tweet.id)
@@ -655,7 +656,9 @@ class FloRetweetBot(object):
                                     except AttributeError:
                                         self.data["tweets"] = [tweet.id]
                                     self.save_db()
-                rt_levels -= 1
+                if count_tweet is False:
+                    print("\tno new tweet found")
+                round += 1
             print("Accounts: " + str(len(self.data['accounts'])))
             if self.parsed_args.account_list:
                 subscriptions_rt_level_1 = 0
