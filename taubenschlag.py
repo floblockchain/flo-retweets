@@ -66,7 +66,7 @@ class Taubenschlag(object):
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
-        print("Starting " + str(self.app_name) + " Bot " + str(self.app_version))
+        print("Starting " + str(self.app_name) + " Bot (Taubenschlag " + str(self.app_version) + ")")
         self.base_url = self.config['SYSTEM']['base_url']
         self.bot_topic = self.config['SYSTEM']['bot_topic']
         self.bot_twitter_account = self.config['SYSTEM']['bot_twitter_account']
@@ -466,15 +466,16 @@ class Taubenschlag(object):
                             msg += "Bot: " + self.app_name + " Bot " + self.app_version + "\r\n\r\n"
                             msg += "Accounts: " + str(len(self.data['accounts'])) + "\r\n"
                             for user_id in self.data['accounts']:
-                                if str(self.data['accounts'][user_id]['retweet_level']) == "1":
-                                    subscriptions_rt_level_1 += 1
-                                    subscriptions_rt_level_2 += 1
-                                    subscriptions_rt_level_3 += 1
-                                elif str(self.data['accounts'][user_id]['retweet_level']) == "2":
-                                    subscriptions_rt_level_2 += 1
-                                    subscriptions_rt_level_3 += 1
-                                elif str(self.data['accounts'][user_id]['retweet_level']) == "3":
-                                    subscriptions_rt_level_3 += 1
+                                if int(self.data['accounts'][user_id]['retweet_level']) == 1:
+                                    if int(self.data['accounts'][user_id]['retweet_level']) == 1:
+                                        subscriptions_rt_level_1 += 1
+                                    elif int(self.data['accounts'][user_id]['retweet_level']) == 2:
+                                        subscriptions_rt_level_1 += 1
+                                        subscriptions_rt_level_2 += 1
+                                    elif int(self.data['accounts'][user_id]['retweet_level']) == 3:
+                                        subscriptions_rt_level_1 += 1
+                                        subscriptions_rt_level_2 += 1
+                                        subscriptions_rt_level_3 += 1
                                 user = self.api_self.get_user(user_id)
                                 msg += "@" + user.screen_name + " - level : " + \
                                        str(self.data['accounts'][user_id]['retweet_level']) + " - rt: " + \
@@ -658,7 +659,7 @@ class Taubenschlag(object):
                                         self.data["tweets"] = [tweet.id]
                                     self.save_db()
                 if count_tweet is False:
-                    print("\tno new tweet found")
+                    print("\tNo new tweet found!")
                 round += 1
             print("Accounts: " + str(len(self.data['accounts'])))
             if self.parsed_args.account_list:
@@ -666,14 +667,14 @@ class Taubenschlag(object):
                 subscriptions_rt_level_2 = 0
                 subscriptions_rt_level_3 = 0
                 for user_id in self.data['accounts']:
-                    if str(self.data['accounts'][user_id]['retweet_level']) == "1":
+                    if int(self.data['accounts'][user_id]['retweet_level']) == 1:
+                        subscriptions_rt_level_1 += 1
+                    elif int(self.data['accounts'][user_id]['retweet_level']) == 2:
                         subscriptions_rt_level_1 += 1
                         subscriptions_rt_level_2 += 1
-                        subscriptions_rt_level_3 += 1
-                    elif str(self.data['accounts'][user_id]['retweet_level']) == "2":
+                    elif int(self.data['accounts'][user_id]['retweet_level']) == 3:
+                        subscriptions_rt_level_1 += 1
                         subscriptions_rt_level_2 += 1
-                        subscriptions_rt_level_3 += 1
-                    elif str(self.data['accounts'][user_id]['retweet_level']) == "3":
                         subscriptions_rt_level_3 += 1
                     try:
                         retweets = self.data['accounts'][str(user_id)]['retweets']
