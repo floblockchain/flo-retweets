@@ -410,6 +410,7 @@ class FloRetweetBot(object):
                         user = self.api_self.get_user(dm.message_create['sender_id'])
                         print("Send command list to " + str(user.id) + " - " + str(user.screen_name))
                         msg = ""
+                        msg += "List of available bot commands:\r\n"
                         msg += "* 'get-cmd-list'\r\n"
                         msg += "* 'get-bot-info (admins only)\r\n"
                         msg += "* 'get-info'\r\n"
@@ -440,7 +441,7 @@ class FloRetweetBot(object):
                                                           "Hello " +
                                                           str(self.api_self.get_user(
                                                               dm.message_create['sender_id']).name) +
-                                                          "!\r\n\r\n" + str(msg) + "\r\n\r\nTOP 10 LEADERBOARD\n\r"
+                                                          "!\r\n\r\n" + str(msg) + "\r\n\r\nTOP 10 LEADERBOARD\r\n"
                                                           "===================\n\r"
                                                           + self.leaderboard_table_string +
                                                           "\r\n\r\nFor questions or additional information, send a "
@@ -478,7 +479,7 @@ class FloRetweetBot(object):
                                 msg += "@" + user.screen_name + " - level : " + \
                                        str(self.data['accounts'][user_id]['retweet_level']) + " - rt: " + \
                                        str(self.data['accounts'][user_id]['retweets']) + "\r\n"
-                            msg += "Available accounts per RT level:\r\n"
+                            msg += "\r\nAvailable accounts per RT level:\r\n"
                             msg += "* 1: " + str(subscriptions_rt_level_1) + "\r\n"
                             msg += "* 2: " + str(subscriptions_rt_level_2) + "\r\n"
                             msg += "* 3: " + str(subscriptions_rt_level_3) + "\r\n\r\n"
