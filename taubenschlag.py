@@ -467,15 +467,14 @@ class Taubenschlag(object):
                             msg += "Accounts: " + str(len(self.data['accounts'])) + "\r\n"
                             for user_id in self.data['accounts']:
                                 if int(self.data['accounts'][user_id]['retweet_level']) == 1:
-                                    if int(self.data['accounts'][user_id]['retweet_level']) == 1:
-                                        subscriptions_rt_level_1 += 1
-                                    elif int(self.data['accounts'][user_id]['retweet_level']) == 2:
-                                        subscriptions_rt_level_1 += 1
-                                        subscriptions_rt_level_2 += 1
-                                    elif int(self.data['accounts'][user_id]['retweet_level']) == 3:
-                                        subscriptions_rt_level_1 += 1
-                                        subscriptions_rt_level_2 += 1
-                                        subscriptions_rt_level_3 += 1
+                                    subscriptions_rt_level_1 += 1
+                                elif int(self.data['accounts'][user_id]['retweet_level']) == 2:
+                                    subscriptions_rt_level_1 += 1
+                                    subscriptions_rt_level_2 += 1
+                                elif int(self.data['accounts'][user_id]['retweet_level']) == 3:
+                                    subscriptions_rt_level_1 += 1
+                                    subscriptions_rt_level_2 += 1
+                                    subscriptions_rt_level_3 += 1
                                 user = self.api_self.get_user(user_id)
                                 msg += "@" + user.screen_name + " - level : " + \
                                        str(self.data['accounts'][user_id]['retweet_level']) + " - rt: " + \
