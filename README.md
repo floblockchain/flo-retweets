@@ -8,13 +8,13 @@ Request a Twitter dev account: https://developer.twitter.com/en/account/environm
 
 A domain routed to the server of the bot: retweets.floblockchain.com
 
-You need a server with Python3 a webserver and a reverse proxy.
+You need a server with Python3, a webserver and a reverse proxy.
 
-Both can be easily provided with apache2:
+Webserver and reverse proxy can easily get provided with apache2:
 ```
 apt-get install apache2 python-certbot-apache
 ```
-Set the hostname in `/etc/apache2/sites-enabled/000-default.conf` to the retweets.floblockchain.com
+Set the hostname in `/etc/apache2/sites-enabled/000-default.conf` to `retweets.floblockchain.com`
 ```
  systemctl restart apache2
 ```
@@ -38,7 +38,7 @@ Restart the server:
 ```
 shutdown -r 0
 ```
-Download/Copy FLO Retweets Bot to `/opt` and unzip it. Make the app available in `/opt/flo-retweets`.
+Download/Copy FLO Retweets Bot and make the app available in `/opt/flo-retweets`.
 
 Install requirements:
 ```
