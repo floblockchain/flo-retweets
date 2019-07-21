@@ -662,10 +662,10 @@ class Taubenschlag(object):
                     print("\tNo new tweet found!")
                 round += 1
             print("Accounts: " + str(len(self.data['accounts'])))
+            subscriptions_rt_level_1 = 0
+            subscriptions_rt_level_2 = 0
+            subscriptions_rt_level_3 = 0
             if self.parsed_args.account_list:
-                subscriptions_rt_level_1 = 0
-                subscriptions_rt_level_2 = 0
-                subscriptions_rt_level_3 = 0
                 for user_id in self.data['accounts']:
                     if int(self.data['accounts'][user_id]['retweet_level']) == 1:
                         subscriptions_rt_level_1 += 1
