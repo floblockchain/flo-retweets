@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# File: flo_retweets_bot.py
+# File: taubenschlag.py
 #
 # Part of ‘FLO Retweets Bot’
 # Project website: https://retweets.floblockchain.com/
@@ -54,13 +54,13 @@ import time
 import tweepy
 
 logging.basicConfig(format="{asctime} [{levelname:8}] {process} {thread} {module} {pathname} {lineno}: {message}",
-                    filename='flo_retweets_bot.log',
+                    filename='taubenschlag.log',
                     style="{")
-logging.getLogger('flo-retweets-bot').addHandler(logging.StreamHandler())
-logging.getLogger('flo-retweets-bot').setLevel(logging.INFO)
+logging.getLogger('taubenschlag').addHandler(logging.StreamHandler())
+logging.getLogger('taubenschlag').setLevel(logging.INFO)
 
 
-class FloRetweetBot(object):
+class Taubenschlag(object):
     def __init__(self):
         self.app_version = "0.8.0"
         self.config = self._load_config()
@@ -442,7 +442,7 @@ class FloRetweetBot(object):
                                                           str(self.api_self.get_user(
                                                               dm.message_create['sender_id']).name) +
                                                           "!\r\n\r\n" + str(msg) + "\r\n\r\nTOP 10 LEADERBOARD\r\n"
-                                                          "===================\n\r"
+                                                          "===================\r\n"
                                                           + self.leaderboard_table_string +
                                                           "\r\n\r\nFor questions or additional information, send a "
                                                           "direct message with the text 'help' to me or 'get-cmd-list' "
@@ -716,7 +716,7 @@ class FloRetweetBot(object):
         self.start_thread(self._webserver_thread)
 
 
-flo_retweet_bot = FloRetweetBot()
-flo_retweet_bot.start_webserver()
-flo_retweet_bot.start_bot()
+taubenschlag = Taubenschlag()
+taubenschlag.start_webserver()
+taubenschlag.start_bot()
 

@@ -1,4 +1,4 @@
-# FLO Retweets Bot Change Log
+# Taubenschlag Change Log
 
 All notable changes to this project will be documented in this file.
 

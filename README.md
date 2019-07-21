@@ -1,4 +1,4 @@
-# FLO Retweets Bot
+# Taubenschlag Twitter Bot
 ## Welcome to FLO Retweets! 
 To participate in the campaign please join on https://retweets.floblockchain.com!
 ## What is it
