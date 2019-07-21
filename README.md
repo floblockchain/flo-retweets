@@ -8,9 +8,7 @@ Request a Twitter dev account: https://developer.twitter.com/en/account/environm
 
 A domain routed to the server of the bot: retweets.floblockchain.com
 
-You need a server with Python3, a webserver and a reverse proxy.
-
-Webserver and reverse proxy can easily get provided with apache2:
+You need a server with Python3, a webserver and a reverse proxy. The Webserver and reverse proxy can easily get provided with apache2:
 ```
 apt-get install apache2 python-certbot-apache
 ```
