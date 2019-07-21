@@ -62,7 +62,7 @@ logging.getLogger('taubenschlag').setLevel(logging.INFO)
 
 class Taubenschlag(object):
     def __init__(self):
-        self.app_version = "0.8.0"
+        self.app_version = "0.8.1"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
