@@ -63,22 +63,27 @@ Modify `./conf.d/rt-level-rule-set.cfg` to setup RT sources.
 ### Autostart and access to the Bot output
 Install `screen` if it is not:
 `apt install screen`
+
 Create a cronjob as root with:
 `crontab -e`
+
 and insert the line:
 ```
 @reboot su - root -c "screen -dm -S flo-retweets /opt/flo-retweets/taubenschlag.py"
 ```
+
 Thats it, now restart and see if it works:
 ```
 shutdown -r 0
 ```
+
 After the reboot test: https://retweets.floblockchain.com and try one auth!
 
 To see the output of the bot use as root:
 ```
 screen -x flo-retweets
 ```
+
 Hint: After `screen -x` press tab-tab, to leave screen press `CTRL+a` and then `d`. 
 
 ### Autorenewal of the SSL certificate
@@ -86,6 +91,7 @@ Create a cronjob with:
 ```
 crontab -e
 ```
+
 and add this lines:
 ```
 SHELL=/bin/sh
@@ -93,6 +99,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 0 */12 * * * root test -x /usr/bin/certbot  -a \! -d /run/systemd/system &&  perl -e 'sleep int(rand(43200))' &&  certbot -q renew
 ```
+
 ### Backup
 Its important to backup `/opt/flo-retweets/db/flo_retweets_bot.json`, do it with `cat flo_retweets_bot.json > 
 backup.json`.
