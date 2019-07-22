@@ -3,18 +3,19 @@
 #
 # File: taubenschlag.py
 #
-# Part of ‘FLO Retweets Bot’
-# Project website: https://retweets.floblockchain.com/
-# GitHub: https://github.com/floblockchain/flo-retweets
-#
-# This bot is a modified version of 'Taubenschlag': https://github.com/bithon/Taubenschlag
+# Part of ‘Taubenschlag'
+# GitHub: https://github.com/bithon/Taubenschlag
 #
 # Author: Oliver Zehentleitner
 #         https://about.me/oliver_zehentleitner/
 #
 # Copy Editor: Jason Schmitz
 #
-# Copyright (c) 2019, floblockchain Team (https://github.com/floblockchain)
+# This bot the FLO version of 'Taubenschlag' - https://github.com/bithon/Taubenschlag:
+# Project website: https://retweets.floblockchain.com/
+# GitHub: https://github.com/floblockchain/flo-retweets
+#
+# Copyright (c) 2019, Oliver Zehentleitner and floblockchain Team (https://github.com/floblockchain)
 # All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -37,11 +38,13 @@
 # IN THE SOFTWARE.
 
 from __future__ import print_function
+from argparse import ArgumentParser
 from cheroot import wsgi
 from copy import deepcopy
 from flask import Flask, redirect, request
+from paramiko import SSHClient, AutoAddPolicy
+from scp import SCPClient
 from shutil import copyfile
-from argparse import ArgumentParser
 import argparse
 import configparser
 import datetime
@@ -53,6 +56,12 @@ import threading
 import time
 import tweepy
 
+# set current working directory
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
+
+# set logging
 logging.basicConfig(format="{asctime} [{levelname:8}] {process} {thread} {module} {pathname} {lineno}: {message}",
                     filename='taubenschlag.log',
                     style="{")
@@ -62,7 +71,7 @@ logging.getLogger('taubenschlag').setLevel(logging.INFO)
 
 class Taubenschlag(object):
     def __init__(self):
-        self.app_version = "0.8.1"
+        self.app_version = "0.9.0"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
@@ -180,9 +189,9 @@ class Taubenschlag(object):
                                                        'access_token_secret': str(auth.access_token_secret),
                                                        'retweet_level': self.default_retweet_level,
                                                        'retweets': retweets_value}
-                self.save_db(extra_string="_all_accounts")
-                logging.info("saved new oAuth access of twitter user " + str(user.name) + "!")
+                logging.info("Saved new oAuth access of Twitter user " + str(user.name) + "!")
                 print("Saved new oAuth token of @" + str(user.screen_name) + " (" + str(user.name) + ")!")
+                self.save_db(new_account=True)
                 retweet_level = self.data['accounts'][str(user.id)]['retweet_level']
                 api = self.get_api_user(user.id)
                 try:
@@ -279,6 +288,15 @@ class Taubenschlag(object):
             try:
                 dm_list = self.api_dm.list_direct_messages()
                 for dm in reversed(dm_list):
+                    try:
+                        if self.data['accounts'][str(dm.message_create['sender_id'])]:
+                            pass
+                    except KeyError as error_msg:
+                        logging.info("The unauthorized Twitter user @" +
+                                     self.api_self.get_user(dm.message_create['sender_id']).screen_name +
+                                     " wrote a command to the bot! (error_msg: " + str(error_msg) + ")")
+                        self.api_dm.destroy_direct_message(dm.id)
+                        continue
                     if "".join(str(dm.message_create['message_data']['text']).split()).lower() == "help":
                         print("Send help DM to " + str(dm.message_create['sender_id']) + "!")
                         user = self.api_self.get_user(dm.message_create['sender_id'])
@@ -562,22 +580,44 @@ class Taubenschlag(object):
         auth.set_access_token(self.access_token_dm, self.access_token_secret_dm)
         self.api_dm = tweepy.API(auth)
 
-    def save_db(self, extra_string=""):
+    def save_db(self, new_account=False):
         try:
-            os.remove("./db/" + self.config['DATABASE']['db_file'] + "_backup" + extra_string)
+            os.remove("./db/" + self.config['DATABASE']['db_file'] + "_backup")
         except FileNotFoundError:
             pass
         try:
             copyfile("./db/" + self.config['DATABASE']['db_file'],
-                     "./db/" + self.config['DATABASE']['db_file'] + "_backup" + extra_string)
+                     "./db/" + self.config['DATABASE']['db_file'] + "_backup")
         except FileNotFoundError:
             pass
         try:
             with open("./db/" + self.config['DATABASE']['db_file'], 'w+') as f:
                 json.dump(self.data, f)
+            if new_account:
+                try:
+                    os.remove("./db/" + self.config['DATABASE']['db_file'] + "_backup_new_user")
+                except FileNotFoundError:
+                    pass
+                with open("./db/" + self.config['DATABASE']['db_file'] + "_backup_new_user", 'w+') as f:
+                    json.dump(self.data, f)
+                if self.config['SYSTEM']['ssh_backup_on_new_user'] == "True":
+                    self.start_thread(self.ssh_remote_backup)
         except PermissionError as error_msg:
             print("ERROR!!! Can not save database file!")
             logging.critical("can not save database file! " + str(error_msg))
+
+    def ssh_remote_backup(self):
+        print("Starting DB backup to " + str(self.config['SECRETS']['ssh_backup_server']))
+        logging.info("Starting DB backup to " + str(self.config['SECRETS']['ssh_backup_server']))
+        ssh = SSHClient()
+        ssh.set_missing_host_key_policy(AutoAddPolicy())
+        ssh.load_system_host_keys()
+        ssh.connect(self.config['SECRETS']['ssh_backup_server'],
+                    username=self.config['SECRETS']['ssh_backup_user'],
+                    password=self.config['SECRETS']['ssh_backup_pass'])
+        with SCPClient(ssh.get_transport()) as scp:
+            scp.put("./db/" + self.config['DATABASE']['db_file'] + "_backup_new_user",
+                    self.config['SECRETS']['ssh_backup_path'] + '/taubenschlag_all_accounts.json')
 
     def search_and_retweet(self):
         while True:

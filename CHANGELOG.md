@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## (development stage/unreleased)
 
+## 0.9.0
+### Added 
+- scp copy on new user to a remote server
+### Fixed
+- check if a user exists in our db, if not delete DM command and continue with next DM
+- "new_user" backup was made before the new user was inserted
+
 ## 0.8.1
 ### Fixed
 - bug in get-bot-info account info
