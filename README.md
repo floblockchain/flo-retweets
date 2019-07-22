@@ -50,6 +50,8 @@ Create two apps in https://developer.twitter.com/en/account/environments
 1. Is the main app with read+write permissions (user auth to this app)
 2. Is the DM sending interface app with read+write+dm permissions (user dont know about his app)
 
+You have to provide a callback URL for app 1: `https://retweets.floblockchain.com/oAuthTwitter/verify`
+
 Copy the access tokens from the two twitter apps to `./conf.d/secrets.cfg` (use the template in 
 `./conf.d/secrets.cfg_template`).
 
