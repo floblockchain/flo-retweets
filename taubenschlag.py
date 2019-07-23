@@ -11,11 +11,7 @@
 #
 # Copy Editor: Jason Schmitz
 #
-# This bot the FLO version of 'Taubenschlag' - https://github.com/bithon/Taubenschlag:
-# Project website: https://retweets.floblockchain.com/
-# GitHub: https://github.com/floblockchain/flo-retweets
-#
-# Copyright (c) 2019, Oliver Zehentleitner and floblockchain Team (https://github.com/floblockchain)
+# Copyright (c) 2019, Oliver Zehentleitner
 # All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -51,17 +47,16 @@ import datetime
 import logging
 import json
 import os
+import random
 import textwrap
 import threading
 import time
 import tweepy
 
-# set current working directory
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
-# set logging
 logging.basicConfig(format="{asctime} [{levelname:8}] {process} {thread} {module} {pathname} {lineno}: {message}",
                     filename='taubenschlag.log',
                     style="{")
@@ -71,7 +66,7 @@ logging.getLogger('taubenschlag').setLevel(logging.INFO)
 
 class Taubenschlag(object):
     def __init__(self):
-        self.app_version = "0.9.0"
+        self.app_version = "0.9.2"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
@@ -92,8 +87,7 @@ class Taubenschlag(object):
         self.access_token_secret_dm = self.config['SECRETS']['access_token_secret_dm']
         parser = ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                 description=textwrap.dedent(self.app_name + " Bot " + self.app_version+ " by "
-                                                            "\r\n - Oliver Zehentleitner (2019 - 2019)"
-                                                            "for FLO\r\n\r\n"
+                                                            "\r\n - Oliver Zehentleitner (2019 - 2019)\r\n\r\n"
                                                             "description: this bot manages retweets for the " +
                                                             self.app_name + " Twitter campaign of multiple accounts!"),
                                 epilog=textwrap.dedent("GitHub: " + self.config['SYSTEM']['github_rep_url']))
@@ -266,8 +260,8 @@ class Taubenschlag(object):
                 return redirect(self.config['SYSTEM']['redirect_canceled'], code=302)
         try:
             dispatcher = wsgi.PathInfoDispatcher({'/': app})
-            webserver = wsgi.WSGIServer((self.config['SYSTEM']['api_listener_ip'],
-                                         int(self.config['SYSTEM']['api_listener_port'])),
+            webserver = wsgi.WSGIServer((self.config['SYSTEM']['webserver_listener_ip'],
+                                         int(self.config['SYSTEM']['webserver_listener_port'])),
                                         dispatcher)
             webserver.start()
             logging.info("webserver started!")
@@ -430,12 +424,12 @@ class Taubenschlag(object):
                         msg = ""
                         msg += "List of available bot commands:\r\n"
                         msg += "* 'get-cmd-list'\r\n"
-                        msg += "* 'get-bot-info (admins only)\r\n"
                         msg += "* 'get-info'\r\n"
                         msg += "* 'help'\r\n"
                         msg += "* 'set-rt-level:1'\r\n"
                         msg += "* 'set-rt-level:2'\r\n"
                         msg += "* 'set-rt-level:3'\r\n"
+                        msg += "* '\r\nget-bot-info (admins only)\r\n"
                         self.api_self.send_direct_message(dm.message_create['sender_id'],
                                                           "Hello " +
                                                           str(self.api_self.get_user(
@@ -542,7 +536,11 @@ class Taubenschlag(object):
             print("Generating leaderboard ...")
             logging.debug("Generating leaderboard ...")
             for user_id in self.data['accounts']:
-                temp_leaderboard_table[user_id] = self.data['accounts'][user_id]['retweets']
+                try:
+                    temp_leaderboard_table[user_id] = self.data['accounts'][user_id]['retweets']
+                except KeyError:
+                    time.sleep(60*1)
+                    continue
             rank = 1
             self.leaderboard_table = {}
             for key, value in reversed(sorted(temp_leaderboard_table.items(), key=lambda item: (item[1], item[0]))):
@@ -626,6 +624,7 @@ class Taubenschlag(object):
             rt_levels = 3
             round = 1
             while rt_levels >= round:
+                start_time = time.time()
                 print("Retweeting level " + str(round) + " tweets:")
                 conditions_list = self.config['RT-LEVEL-' + str(round)]['conditions'].split(",")
                 source_accounts_list = self.config['RT-LEVEL-' + str(round)]['from'].split(",")
@@ -662,6 +661,7 @@ class Taubenschlag(object):
                                             self.config['SYSTEM']['let_bot_account_retweet'] == "True") \
                                                 and int(self.data['accounts'][str(user_id)]['retweet_level']) >= \
                                                 round:
+                                            time.sleep(random.randint(0, 5))
                                             api = self.get_api_user(user_id)
                                             try:
                                                 user_tweet = api.get_status(tweet.id)
@@ -690,6 +690,9 @@ class Taubenschlag(object):
                                                           user_id)
                                                     del self.data['accounts'][user_id]
                                                     self.save_db()
+                                                else:
+                                                    logging.info(str(error_msg) + " UserID: " + user_id)
+                                                    print(str(error_msg) + " UserID: " + user_id)
                                     if count_tweet:
                                         self.data['statistic']['tweets'] += 1
                                     try:
@@ -704,17 +707,17 @@ class Taubenschlag(object):
             subscriptions_rt_level_1 = 0
             subscriptions_rt_level_2 = 0
             subscriptions_rt_level_3 = 0
-            if self.parsed_args.account_list:
-                for user_id in self.data['accounts']:
-                    if int(self.data['accounts'][user_id]['retweet_level']) == 1:
-                        subscriptions_rt_level_1 += 1
-                    elif int(self.data['accounts'][user_id]['retweet_level']) == 2:
-                        subscriptions_rt_level_1 += 1
-                        subscriptions_rt_level_2 += 1
-                    elif int(self.data['accounts'][user_id]['retweet_level']) == 3:
-                        subscriptions_rt_level_1 += 1
-                        subscriptions_rt_level_2 += 1
-                        subscriptions_rt_level_3 += 1
+            for user_id in self.data['accounts']:
+                if int(self.data['accounts'][user_id]['retweet_level']) == 1:
+                    subscriptions_rt_level_1 += 1
+                elif int(self.data['accounts'][user_id]['retweet_level']) == 2:
+                    subscriptions_rt_level_1 += 1
+                    subscriptions_rt_level_2 += 1
+                elif int(self.data['accounts'][user_id]['retweet_level']) == 3:
+                    subscriptions_rt_level_1 += 1
+                    subscriptions_rt_level_2 += 1
+                    subscriptions_rt_level_3 += 1
+                if self.parsed_args.account_list:
                     try:
                         retweets = self.data['accounts'][str(user_id)]['retweets']
                     except KeyError:
@@ -739,7 +742,13 @@ class Taubenschlag(object):
             print("Sent help DMs: " + str(self.data['statistic']['sent_help_dm']))
             print("Executed bot commands: " + str(self.data['statistic']['received_botcmds']))
             print("--------------------------------------------------------------------------------------")
-            time.sleep(30)
+            end_time = time.time()
+            if end_time - start_time > 60:
+                continue
+            elif end_time - start_time > 20:
+                time.sleep(30)
+            else:
+                time.sleep(60)
 
     def start_bot(self):
         self.start_thread(self.leaderboard)
