@@ -48,6 +48,7 @@ import logging
 import json
 import os
 import random
+import requests
 import textwrap
 import threading
 import time
@@ -66,7 +67,7 @@ logging.getLogger('taubenschlag').setLevel(logging.INFO)
 
 class Taubenschlag(object):
     def __init__(self):
-        self.app_version = "0.9.2"
+        self.app_version = "0.10.0"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
@@ -85,6 +86,11 @@ class Taubenschlag(object):
         self.consumer_secret_dm = self.config['SECRETS']['consumer_secret_dm']
         self.access_token_dm = self.config['SECRETS']['access_token_dm']
         self.access_token_secret_dm = self.config['SECRETS']['access_token_secret_dm']
+        self.consumer_secret = self.config['SECRETS']['consumer_secret']
+        self.telegram_auth_token = self.config['SECRETS']['telegram_auth_token']
+        self.telegram_chat_id = self.config['SECRETS']['telegram_chat_id']
+        self.telegram_post_new_tweets_to_chat_room = self.config['SYSTEM']['telegram_post_new_tweets_to_chat_room']
+
         parser = ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                 description=textwrap.dedent(self.app_name + " Bot " + self.app_version+ " by "
                                                             "\r\n - Oliver Zehentleitner (2019 - 2019)\r\n\r\n"
@@ -236,9 +242,9 @@ class Taubenschlag(object):
                                                       "permit it to:\r\n* Access or otherwise view your Direct Messages"
                                                       " (DMs)\r\n* Access or otherwise view your email address\r\n"
                                                       "* Access or otherwise view your Twitter password\r\n"
-                                                      "\r\nBy authorizing any application, including the " +
+                                                      "\r\nBy authorizing any application, including '" +
                                                       self.app_name +
-                                                      "Retweets, you continue to operate under Twitter's Terms of "
+                                                      "', you continue to operate under Twitter's Terms of "
                                                       "Service. Some usage data will be "
                                                       "shared with Twitter. For more information, see Twitter’s "
                                                       'Privacy Policy.'"\r\n"
@@ -337,9 +343,10 @@ class Taubenschlag(object):
                                                           "\r\nAuthorizing " + self.app_name + " does not permit it to:"
                                                           "\r\n* Access or otherwise view your Direct Messages (DMs)"
                                                           "\r\n* Access or otherwise view your email address\r\n"
-                                                          "* Access or otherwise view your Twitter password\r\n\r\nBy a"
-                                                          "uthorizing any application, including the " + self.app_name +
-                                                          ", you continue to operate under Twitter's Terms of "
+                                                          "* Access or otherwise view your Twitter password\r\n\r\nBy "
+                                                          "authorizing any application, including '" +
+                                                          self.app_name +
+                                                          "', you continue to operate under Twitter's Terms of "
                                                           "Service. Some usage data will be "
                                                           "shared with Twitter. For more information, see Twitter’s "
                                                           'Privacy Policy.'"\r\n"
@@ -568,6 +575,13 @@ class Taubenschlag(object):
             logging.error("create new db!" + str(error_msg))
             self.data = self.data_layout
 
+    def post_to_telegram(self, message):
+        send_text = 'https://api.telegram.org/bot' + str(self.telegram_auth_token) + '/sendMessage?chat_id=' + \
+                    str(self.telegram_chat_id) + '&parse_mode=Markdown&text=' + str(message)
+        response = requests.get(send_text)
+        print(response.json())
+        return response.json()
+
     def refresh_api_self(self):
         auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
         auth.set_access_token(self.access_token, self.access_token_secret)
@@ -656,7 +670,12 @@ class Taubenschlag(object):
                                     logging.debug(str(tweet.id) + " - " + str(tweet.text[0:80]).splitlines()[0] +
                                                   " ...")
                                     accounts = deepcopy(self.data['accounts'])
+                                    # randomize order of users for a more natural behaviour:
+                                    random_account_list = []
                                     for user_id in accounts:
+                                        random_account_list.append(user_id)
+                                    random.shuffle(random_account_list)
+                                    for user_id in random_account_list:
                                         if (str(user_id) != str(self.bot_user_id) or
                                             self.config['SYSTEM']['let_bot_account_retweet'] == "True") \
                                                 and int(self.data['accounts'][str(user_id)]['retweet_level']) >= \
@@ -695,6 +714,13 @@ class Taubenschlag(object):
                                                     print(str(error_msg) + " UserID: " + user_id)
                                     if count_tweet:
                                         self.data['statistic']['tweets'] += 1
+                                        if self.telegram_post_new_tweets_to_chat_room == "True":
+                                            telegram_message = "I detected a new tweet: " \
+                                                               "https://twitter.com/" + str(tweet.user.screen_name) + \
+                                                               "/status/" + str(tweet.id) + "\r\n\r\n" \
+                                                               "Please help retweeting manually or simply let the " \
+                                                               "bot do this for you: " + self.base_url
+                                        self.post_to_telegram(telegram_message)
                                     try:
                                         self.data['tweets'].append(tweet.id)
                                     except AttributeError:
