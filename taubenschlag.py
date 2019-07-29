@@ -67,7 +67,7 @@ logging.getLogger('taubenschlag').setLevel(logging.INFO)
 
 class Taubenschlag(object):
     def __init__(self):
-        self.app_version = "0.10.2"
+        self.app_version = "0.11.0"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
@@ -88,8 +88,11 @@ class Taubenschlag(object):
         self.access_token_secret_dm = self.config['SECRETS']['access_token_secret_dm']
         self.consumer_secret = self.config['SECRETS']['consumer_secret']
         self.telegram_auth_token = self.config['SECRETS']['telegram_auth_token']
-        self.telegram_chat_id = self.config['SECRETS']['telegram_chat_id']
-        self.telegram_post_new_tweets_to_chat_room = self.config['SYSTEM']['telegram_post_new_tweets_to_chat_room']
+        self.telegram_group_id = self.config['SECRETS']['telegram_group_id']
+        self.telegram_channel_id = self.config['SECRETS']['telegram_channel_id']
+        self.telegram_post_new_tweets_to_group = self.config['SYSTEM']['telegram_post_new_tweets_to_group']
+        self.telegram_post_new_tweets_to_channel = self.config['SYSTEM']['telegram_post_new_tweets_to_channel']
+        self.telegram_channel_tag = self.config['SYSTEM']['telegram_channel_tag']
 
         parser = ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                 description=textwrap.dedent(self.app_name + " Bot " + self.app_version+ " by "
@@ -576,11 +579,10 @@ class Taubenschlag(object):
             logging.error("create new db!" + str(error_msg))
             self.data = self.data_layout
 
-    def post_to_telegram(self, message):
+    def post_to_telegram(self, message, chat_id):
         send_text = 'https://api.telegram.org/bot' + str(self.telegram_auth_token) + '/sendMessage?chat_id=' + \
-                    str(self.telegram_chat_id) + '&parse_mode=Markdown&text=' + str(message)
+                    str(chat_id).strip() + '&text=' + str(message)
         response = requests.get(send_text)
-        print(response.json())
         return response.json()
 
     def refresh_api_self(self):
@@ -717,15 +719,22 @@ class Taubenschlag(object):
                                                     print(str(error_msg) + " UserID: " + user_id)
                                     if count_tweet:
                                         self.data['statistic']['tweets'] += 1
-                                        if self.telegram_post_new_tweets_to_chat_room == "True":
+                                        if self.telegram_post_new_tweets_to_group == "True":
                                             telegram_message = "I found a new tweet with rt-level " + str(round) + \
-                                                               " and made " + str(made_retweets) + " retweets: " \
+                                                               " and made " + str(made_retweets) + " retweets:\r\n" \
                                                                "https://twitter.com/" + str(tweet.user.screen_name) + \
                                                                "/status/" + str(tweet.id) + "\r\n\r\n" \
-                                                               "Please help us retweeting manually or simply let our " \
-                                                               "bot do this for you and join FLO Retweets " + \
-                                                               self.base_url
-                                            self.post_to_telegram(telegram_message)
+                                                               "Please help by retweeting manually or simply let our " \
+                                                               "bot do this for you and join FLO Retweets:\r\n" + \
+                                                               self.base_url + "\r\n\r\nList of all tweets: " + \
+                                                               self.telegram_channel_tag
+                                            self.post_to_telegram(telegram_message, self.telegram_group_id)
+                                        time.sleep(2)
+                                        if self.telegram_post_new_tweets_to_channel == "True":
+                                            telegram_message = "Retweet level: " + str(round) + " \r\n" \
+                                                               "https://twitter.com/" + str(tweet.user.screen_name) + \
+                                                               "/status/" + str(tweet.id)
+                                            self.post_to_telegram(telegram_message, self.telegram_channel_id)
                                     try:
                                         self.data['tweets'].append(tweet.id)
                                     except AttributeError:
@@ -799,4 +808,3 @@ class Taubenschlag(object):
 taubenschlag = Taubenschlag()
 taubenschlag.start_webserver()
 taubenschlag.start_bot()
-
