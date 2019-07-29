@@ -67,7 +67,7 @@ logging.getLogger('taubenschlag').setLevel(logging.INFO)
 
 class Taubenschlag(object):
     def __init__(self):
-        self.app_version = "0.11.3"
+        self.app_version = "0.11.0"
         self.config = self._load_config()
         self.app_name = self.config['SYSTEM']['app_name']
         self.dm_sender_name = self.config['SYSTEM']['dm_sender_name']
@@ -638,7 +638,7 @@ class Taubenschlag(object):
         while True:
             print("======================================================================================")
             print("Starting new round at " + str(datetime.datetime.now()))
-            rt_levels = 3
+            rt_levels = 2
             round = 1
             while rt_levels >= round:
                 start_time = time.time()
